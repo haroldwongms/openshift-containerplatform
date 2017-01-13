@@ -1,0 +1,134 @@
+﻿{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"_artifactsLocation": {
+			"type": "string",
+			"metadata": {
+				"description": "Base URL for script location"
+			}
+		},
+		"apiVersionCompute": {
+			"type": "string",
+			"metadata": {
+				"description": "API version for compute resources"
+			}
+		},
+		"openshiftMasterHostname": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Master hostname"
+			}
+		},
+		"openshiftMasterPublicIpFqdn": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Master VM public IP fully qualified domain name"
+			}
+		},
+		"openshiftMasterPublicIpAddress": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Master VM public IP address"
+			}
+		},
+		"openshiftInfraHostname": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Infra Node hostname"
+			}
+		},
+		"openshiftNodeHostname": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Node hostname"
+			}
+		},
+		"masterInstanceCount": {
+			"type": "int",
+			"minValue": 1,
+			"metadata": {
+				"description": "Number of OpenShift nodes"
+			}
+		},
+		"nodeInstanceCount": {
+			"type": "int",
+			"minValue": 1,
+			"metadata": {
+				"description": "Number of OpenShift nodes"
+			}
+		},
+		"adminUsername": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Administrator username on all VMs"
+			}
+		},
+		"openshiftPassword": {
+			"type": "securestring",
+			"minLength": 1,
+			"metadata": {
+				"description": "Administrator password for OpenShift Console"
+			}
+		},
+		"xipioDomain": {
+			"type": "string",
+			"metadata": {
+				"description": "Xip.io Subdomain for application routing"
+			}
+		},
+		"customDomain": {
+			"type": "string",
+			"metadata": {
+				"description": "custom Subdomain for application routing"
+			}
+		},
+		"subDomainChosen": {
+			"type": "string",
+			"metadata": {
+				"description": "Subdomain chosen for application routing"
+			}
+		},
+		"sshPrivateKey": {
+			"type": "securestring",
+			"minLength": 1,
+			"metadata": {
+				"description": "SSH private key for deploying OpenShift"
+			}
+		}
+	},
+	"variables": {
+		"openshiftDeploymentScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/deployOpenShift.sh')]",
+		"openshiftDeploymentScriptFileName": "deployOpenShift.sh"
+	},
+	"resources": [{
+		"type": "Microsoft.Compute/virtualMachines/extensions",
+		"name": "[concat(parameters('openshiftMasterHostname'), '-0', '/deployOpenShift')]",
+		"location": "[resourceGroup().location]",
+		"apiVersion": "[parameters('apiVersionCompute')]",
+		"tags": {
+			"displayName": "DeployOpenShift"
+		},
+		"properties": {
+			"publisher": "Microsoft.Azure.Extensions",
+			"type": "CustomScript",
+			"typeHandlerVersion": "2.0",
+			"autoUpgradeMinorVersion": true,
+			"settings": {
+				"fileUris": [
+					"[variables('openshiftDeploymentScriptUrl')]"
+				]
+			},
+			"protectedSettings": {
+				"commandToExecute": "[concat('bash ', variables('openshiftDeploymentScriptFileName'), ' \"', parameters('adminUsername'), '\" \"', parameters('openshiftPassword'), '\" \"', parameters('sshPrivateKey'), '\" \"', parameters('openshiftMasterHostname'), '\" \"', parameters('openshiftMasterPublicIpFqdn'), '\" \"', parameters('openshiftMasterPublicIpAddress'), '\" \"', parameters('openshiftInfraHostname'), '\" \"', parameters('openshiftNodeHostname'), '\" \"', parameters('nodeInstanceCount'), '\" \"', parameters('MasterInstanceCount'), '\" \"', parameters(parameters('subDomainChosen')), '\"')]"
+			}
+		}
+	}],
+	"outputs": {}
+}

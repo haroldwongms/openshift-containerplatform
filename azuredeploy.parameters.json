@@ -1,0 +1,66 @@
+﻿{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"_artifactsLocation": {
+			"value": "https://raw.githubusercontent.com/haroldwongms/openshift-containerplatform/master"
+		},
+		"masterVmSize": {
+			"value": "Standard_DS2_v2"
+		},
+		"nodeVmSize": {
+			"value": "Standard_DS2_v2"
+		},
+		"openshiftClusterPrefix": {
+			"value": "changeme"
+		},
+		"openshiftMasterPublicIpDnsLabelPrefix": {
+			"value": "GEN-UNIQUE"
+		},
+		"nodeLbPublicIpDnsLabelPrefix": {
+			"value": "GEN-UNIQUE"
+		},
+		"masterInstanceCount": {
+			"value": 1
+		},
+		"nodeInstanceCount": {
+			"value": 1
+		},
+		"dataDiskSize": {
+			"value": 50
+		},
+		"adminUsername": {
+			"value": "changeme"
+		},
+		"openshiftPassword": {
+			"value": "changeme"
+		},
+		"cloudAccessUsername": {
+			"value": "changeme"
+		},
+		"cloudAccessPassword": {
+			"value": "changeme"
+		},
+		"cloudAccessPoolId": {
+			"value": "changeme"
+		},
+		"sshPublicKey": {
+			"value": "GEN-SSH-PUB-KEY"
+		},
+		"keyVaultResourceGroup": {
+			"value": "changeme"
+		},
+		"keyVaultName": {
+			"value": "changeme"
+		},
+		"keyVaultSecret": {
+			"value": "changeme"
+		},
+		"defaultSubDomainType": {
+			"value": "xipio"
+		},
+		"defaultSubDomain": {
+			"value": "changeme"
+		}
+	}
+}
