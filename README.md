@@ -91,4 +91,4 @@ This template creates an OpenShift user but does not make it a full OpenShift us
    
 ### Additional OpenShift Configuration Options
  
-You can configure additional settings per the official [OpenShift Enterprise Documentation](https://docs.openshift.com/enterprise/3.3/welcome/index.html).
+You can configure additional settings per the official [OpenShift Enterprise Documentation](https://docs.openshift.com/container-platform/3.3/).
