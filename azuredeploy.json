@@ -780,7 +780,8 @@
 			"dependsOn": [
 				"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
 				"[concat('Microsoft.Network/loadBalancers/', variables('masterLoadBalancerName'))]",
-				"[concat(variables('masterLbId'), '/inboundNatRules/SSH-', variables('openshiftMasterHostname') ,copyIndex())]"
+				"[concat(variables('masterLbId'), '/inboundNatRules/SSH-', variables('openshiftMasterHostname') ,copyIndex())]",
+				"[concat('Microsoft.Network/networkSecurityGroups/', variables('openshiftNodeHostname'), '-nsg')]"
 			],
 			"copy": {
 				"name": "masterNicLoop",
@@ -818,7 +819,8 @@
 			},
 			"dependsOn": [
 				"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-				"[concat('Microsoft.Network/loadBalancers/', variables('infraLoadBalancerName'))]"
+				"[concat('Microsoft.Network/loadBalancers/', variables('infraLoadBalancerName'))]",
+				"[concat('Microsoft.Network/networkSecurityGroups/', variables('openshiftInfraHostname'), '-nsg')]"
 			],
 			"copy": {
 				"name": "infraNicLoop",
@@ -850,7 +852,8 @@
 				"displayName": "OpenShiftNodeNetworkInterfaces"
 			},
 			"dependsOn": [
-				"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+				"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+				"[concat('Microsoft.Network/networkSecurityGroups/', variables('openshiftNodeHostname'), '-nsg')]"
 			],
 			"copy": {
 				"name": "nodeNicLoop",
