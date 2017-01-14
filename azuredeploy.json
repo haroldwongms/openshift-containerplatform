@@ -217,7 +217,7 @@
 			"version": "latest"
 		},
 		"imageReference": "[variables('osType')]",
-		"sshKeyPath": "[concat('/home/', parameters('adminUsername'), '.ssh/authorized_keys')]",
+		"sshKeyPath": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
 		"nodePrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/nodePrep.sh')]",
 		"masterPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/masterPrep.sh')]",
 		"nodePrepScriptFileName": "nodePrep.sh",
