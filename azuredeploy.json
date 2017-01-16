@@ -1223,7 +1223,7 @@
 		},
 		"openshiftMasterSsh": {
 			"type": "string",
-			"value": "[concat('ssh ', parameters('adminUsername'), '@', reference(parameters('openshiftMasterPublicIpDnsLabel')).dnsSettings.fqdn)]"
+			"value": "[concat('ssh ', parameters('adminUsername'), '@', reference(parameters('openshiftMasterPublicIpDnsLabel')).dnsSettings.fqdn, ':2200')]"
 		},
 		"openshiftInfraLoadBalancerFQDN": {
 			"type": "string",
