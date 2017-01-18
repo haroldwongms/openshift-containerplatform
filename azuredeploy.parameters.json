@@ -14,10 +14,10 @@
 		"openshiftClusterPrefix": {
 			"value": "changeme"
 		},
-		"openshiftMasterPublicIpDnsLabelPrefix": {
+		"openshiftMasterPublicIpDnsLabel": {
 			"value": "GEN-UNIQUE"
 		},
-		"nodeLbPublicIpDnsLabelPrefix": {
+		"infraLbPublicIpDnsLabel": {
 			"value": "GEN-UNIQUE"
 		},
 		"masterInstanceCount": {

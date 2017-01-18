@@ -51,8 +51,8 @@ You will need to create a Key Vault to store your SSH Private Key that will then
 2.  masterVmSize: Select from one of the allowed VM sizes listed in the azuredeploy.json file
 3.  nodeVmSize: Select from one of the allowed VM sizes listed in the azuredeploy.json file
 4.  openshiftClusterPrefix: Cluster Prefix applied to all nodes - master, infra and nodes
-5.  openshiftMasterPublicIpDnsLabelPrefix: A unique Public DNS host name (not FQDN) to reference the Master Node by
-6.  nodeLbPublicIpDnsLabelPrefix: A unique Public DNS host name (not FQDN) to reference the Node Load Balancer by.  Used to access deployed applications
+5.  openshiftMasterPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Master Node by
+6.  infraLbPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Node Load Balancer by.  Used to access deployed applications
 7.  masterInstanceCount: Number of Masters and Infra nodes to deploy
 8.  nodeInstanceCount: Number of Nodes to deploy
 9.  dataDiskSize: Size of data disk to attach to nodes for Docker volume
