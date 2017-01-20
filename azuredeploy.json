@@ -1174,7 +1174,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('masterPrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' \'', parameters('cloudAccessPassword'), '\' ', parameters('cloudAccessPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('masterPrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' \\'', parameters('cloudAccessPassword'), '\\' ', parameters('cloudAccessPoolId'))]"
 				}
 			}
 		}, {
@@ -1203,7 +1203,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' \'', parameters('cloudAccessPassword'), '\' ', parameters('cloudAccessPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' \\'', parameters('cloudAccessPassword'), '\\' ', parameters('cloudAccessPoolId'))]"
 				}
 			}
 		}, {
@@ -1232,7 +1232,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' \'', parameters('cloudAccessPassword'), '\' ', parameters('cloudAccessPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' \\'', parameters('cloudAccessPassword'), '\\' ', parameters('cloudAccessPoolId'))]"
 				}
 			}
 		}, {
