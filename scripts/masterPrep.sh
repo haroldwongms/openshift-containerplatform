@@ -43,7 +43,7 @@ yum -y install atomic-openshift-utils
 # Install Docker 1.12 
 echo $(date) " - Installing Docker 1.12"
 
-yum -y install docker-1.12
+yum -y install docker
 sed -i -e "s#^OPTIONS='--selinux-enabled'#OPTIONS='--selinux-enabled --insecure-registry 172.30.0.0/16'#" /etc/sysconfig/docker
 
 # Create thin pool logical volume for Docker
