@@ -202,6 +202,7 @@
 		"masterLbBackendPoolId": "[concat(variables('masterLbId'),'/backendAddressPools/loadBalancerBackend')]",
 		"masterLbHttpProbeId": "[concat(variables('masterLbId'),'/probes/httpProbe')]",
 		"masterLb8443ProbeId": "[concat(variables('masterLbId'),'/probes/8443Probe')]",
+		"masterLbCockpitProbeId": "[concat(variables('masterLbId'),'/probes/cockpitProbe')]",
 		
 		"infraLoadBalancerName": "[concat(variables('openshiftInfraHostname'), 'lb')]",
 		"infraPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('infraLbPublicIpDnsLabel'))]",
@@ -210,6 +211,7 @@
 		"infraLbBackendPoolId": "[concat(variables('infraLbId'),'/backendAddressPools/loadBalancerBackend')]",
 		"infraLbHttpProbeId": "[concat(variables('infraLbId'),'/probes/httpProbe')]",
 		"infraLbHttpsProbeId": "[concat(variables('infraLbId'),'/probes/httpsProbe')]",
+		"infraLbCockpitProbeId": "[concat(variables('infraLbId'),'/probes/cockpitProbe')]",
 		"osType": {
 			"publisher": "RedHat",
 			"offer": "RHEL",
@@ -432,6 +434,19 @@
 						"priority": 300,
 						"direction": "Inbound"
 					}
+				}, {
+					"name": "allowCockpitIn_all",
+					"properties": {
+						"description": "Allow Cockpit connections from all locations",
+						"protocol": "Tcp",
+						"sourcePortRange": "*",
+						"destinationPortRange": "9090",
+						"sourceAddressPrefix": "*",
+						"destinationAddressPrefix": "*",
+						"access": "Allow",
+						"priority": 400,
+						"direction": "Inbound"
+					}
 				}]
 			}
 		}, {
@@ -454,7 +469,7 @@
 						"direction": "Inbound"
 					}
 				}, {
-					"name": "allowHTTPS_all",
+					"name": "allowHTTPSIn_all",
 					"properties": {
 						"description": "Allow HTTPS connections from all locations",
 						"protocol": "Tcp",
@@ -469,7 +484,7 @@
 				}, {
 					"name": "allowHTTPIn_all",
 					"properties": {
-						"description": "Allow HTTPS connections from all locations",
+						"description": "Allow HTTP connections from all locations",
 						"protocol": "Tcp",
 						"sourcePortRange": "*",
 						"destinationPortRange": "80",
@@ -477,6 +492,19 @@
 						"destinationAddressPrefix": "*",
 						"access": "Allow",
 						"priority": 300,
+						"direction": "Inbound"
+					}
+				}, {
+					"name": "allowCockpitIn_all",
+					"properties": {
+						"description": "Allow Cockpit connections from all locations",
+						"protocol": "Tcp",
+						"sourcePortRange": "*",
+						"destinationPortRange": "9090",
+						"sourceAddressPrefix": "*",
+						"destinationAddressPrefix": "*",
+						"access": "Allow",
+						"priority": 400,
 						"direction": "Inbound"
 					}
 				}]
@@ -516,7 +544,7 @@
 				}, {
 					"name": "allowHTTPIn_all",
 					"properties": {
-						"description": "Allow HTTPS connections from all locations",
+						"description": "Allow HTTP connections from all locations",
 						"protocol": "Tcp",
 						"sourcePortRange": "*",
 						"destinationPortRange": "80",
@@ -524,6 +552,19 @@
 						"destinationAddressPrefix": "*",
 						"access": "Allow",
 						"priority": 300,
+						"direction": "Inbound"
+					}
+				}, {
+					"name": "allowCockpitIn_all",
+					"properties": {
+						"description": "Allow Cockpit connections from all locations",
+						"protocol": "Tcp",
+						"sourcePortRange": "*",
+						"destinationPortRange": "9090",
+						"sourceAddressPrefix": "*",
+						"destinationAddressPrefix": "*",
+						"access": "Allow",
+						"priority": 400,
 						"direction": "Inbound"
 					}
 				}]
@@ -661,12 +702,36 @@
 							"id": "[variables('masterLb8443ProbeId')]"
 						}
 					}
+				}, {
+					"name": "CockpitConsole",
+					"properties": {
+						"frontendIPConfiguration": {
+							"id": "[variables('masterLbFrontEndConfigId')]"
+						},
+						"backendAddressPool": {
+							"id": "[variables('masterLbBackendPoolId')]"
+						},
+						"protocol": "Tcp",
+						"frontendPort": 9090,
+						"backendPort": 9090,
+						"probe": {
+							"id": "[variables('masterLbCockpitProbeId')]"
+						}
+					}
 				}],
 				"probes": [{
 					"name": "8443Probe",
 					"properties": {
 						"protocol": "Tcp",
 						"port": 8443,
+						"intervalInSeconds": 5,
+						"numberOfProbes": 2
+					}
+				}, {
+					"name": "cockpitProbe",
+					"properties": {
+						"protocol": "Tcp",
+						"port": 9090,
 						"intervalInSeconds": 5,
 						"numberOfProbes": 2
 					}
@@ -750,6 +815,22 @@
 							"id": "[variables('infraLbHttpsProbeId')]"
 						}
 					}
+				}, {
+					"name": "CockpitConsole",
+					"properties": {
+						"frontendIPConfiguration": {
+							"id": "[variables('infraLbFrontEndConfigId')]"
+						},
+						"backendAddressPool": {
+							"id": "[variables('infraLbBackendPoolId')]"
+						},
+						"protocol": "Tcp",
+						"frontendPort": 9090,
+						"backendPort": 9090,
+						"probe": {
+							"id": "[variables('infraLbCockpitProbeId')]"
+						}
+					}
 				}],
 				"probes": [{
 					"name": "httpProbe",
@@ -764,6 +845,14 @@
 					"properties": {
 						"protocol": "Tcp",
 						"port": 443,
+						"intervalInSeconds": 5,
+						"numberOfProbes": 2
+					}
+				}, {
+					"name": "cockpitProbe",
+					"properties": {
+						"protocol": "Tcp",
+						"port": 9090,
 						"intervalInSeconds": 5,
 						"numberOfProbes": 2
 					}
