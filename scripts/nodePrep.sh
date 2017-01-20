@@ -2,7 +2,7 @@
 echo $(date) " - Starting Script"
 
 USER=$1
-PASSWORD=$2
+PASSWORD="$2"
 POOL_ID=$3
 
 # Register Host with Cloud Access Subscription
