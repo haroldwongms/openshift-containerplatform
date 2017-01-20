@@ -5,7 +5,7 @@ echo $(date) " - Starting Script"
 set -e
 
 SUDOUSER=$1
-PASSWORD=$2
+PASSWORD="$2"
 PRIVATEKEY=$3
 MASTER=$4
 MASTERPUBLICIPHOSTNAME=$5
@@ -121,14 +121,8 @@ EOF
 
 fi
 
-#for (( c=0; c<$NODECOUNT; c++ ))
-#do
-#  echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\"" >> /etc/ansible/hosts
-#done
-
-
-# Initiating installation of OpenShift Enterprise using Ansible Playbook
-echo $(date) " - Installing OpenShift Enterprise via Ansible Playbook"
+# Initiating installation of OpenShift Container Platform using Ansible Playbook
+echo $(date) " - Installing OpenShift Container Platform via Ansible Playbook"
 
 runuser -l $SUDOUSER -c "ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml"
 
@@ -151,6 +145,6 @@ sed -i -e "s/# Defaults    requiretty/Defaults    requiretty/" /etc/sudoers
 echo $(date) "- Adding OpenShift user"
 
 mkdir -p /etc/origin/master
-htpasswd -cb /etc/origin/master/htpasswd $SUDOUSER '$PASSWORD'
+htpasswd -cb /etc/origin/master/htpasswd $SUDOUSER "$PASSWORD"
 
 echo $(date) " - Script complete"
