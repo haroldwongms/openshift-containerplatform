@@ -23,7 +23,7 @@ then
    echo "Pool attached successfully"
 else
    echo "Incorrect Pool ID or no entitlements available"
-   exit 3
+   exit 4
 fi
 
 # Disable all repositories and enable only the required ones
@@ -72,7 +72,7 @@ then
    echo "Docker thin pool logical volume created successfully"
 else
    echo "Error creating logical volume for Docker"
-   exit 3
+   exit 5
 fi
 
 # Enable and start Docker services
