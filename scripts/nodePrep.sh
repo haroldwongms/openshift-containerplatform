@@ -9,7 +9,22 @@ POOL_ID=$3
 echo $(date) " - Register host with Cloud Access Subscription"
 
 subscription-manager register --username="$USER" --password="$PASSWORD"
+if [ $? -eq 0 ]
+then
+   echo "Subscribed successfully"
+else
+   echo "Incorrect Username and / or Password specified"
+   exit 3
+fi
+
 subscription-manager attach --pool=$POOL_ID
+if [ $? -eq 0 ]
+then
+   echo "Pool attached successfully"
+else
+   echo "Incorrect Pool ID or no entitlements available"
+   exit 3
+fi
 
 # Disable all repositories and enable only the required ones
 echo $(date) " - Disabling all repositories and enabling only the required repos"
@@ -47,6 +62,13 @@ echo $(date) " - Creating thin pool logical volume for Docker and staring servic
 echo "DEVS=/dev/sdc" >> /etc/sysconfig/docker-storage-setup
 echo "VG=docker-vg" >> /etc/sysconfig/docker-storage-setup
 docker-storage-setup
+if [ $? -eq 0 ]
+then
+   echo "Docker thin pool logical volume created successfully"
+else
+   echo "Error creating logical volume for Docker"
+   exit 3
+fi
 
 # Enable and start Docker services
 

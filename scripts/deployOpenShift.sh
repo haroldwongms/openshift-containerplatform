@@ -37,6 +37,24 @@ sed -i -e "s/^# control_path = %(directory)s\/%%h-%%r/control_path = %(directory
 sed -i -e "s/^#host_key_checking = False/host_key_checking = False/" /etc/ansible/ansible.cfg
 sed -i -e "s/^#pty=False/pty=False/" /etc/ansible/ansible.cfg
 
+# Create Ansible Playbook for Post Installation task
+echo $(date) " - Create Ansible Playbook for Post Installation task"
+
+cat > /root/postinstall.yml <<EOF
+---
+- hosts: masters
+  remote_user: ${SUDOUSER}
+  become: yes
+  become_method: sudo
+  vars:
+    description: "Create OpenShift Users"
+  tasks:
+  - name: create directory
+    file: path=/etc/origin/master state=directory
+  - name: add initial OpenShift user
+    shell: htpasswd -cb /etc/origin/master/htpasswd ${SUDOUSER} "${PASSWORD}"
+EOF
+
 # Create Ansible Hosts File
 echo $(date) " - Create Ansible Hosts file"
 
@@ -144,7 +162,8 @@ sed -i -e "s/# Defaults    requiretty/Defaults    requiretty/" /etc/sudoers
 # Adding user to OpenShift authentication file
 echo $(date) "- Adding OpenShift user"
 
-mkdir -p /etc/origin/master
-htpasswd -cb /etc/origin/master/htpasswd $SUDOUSER "$PASSWORD"
+# mkdir -p /etc/origin/master
+# htpasswd -cb /etc/origin/master/htpasswd $SUDOUSER "$PASSWORD"
+ansible-playbook /root/postinstall.yml
 
 echo $(date) " - Script complete"
