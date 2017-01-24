@@ -26,10 +26,12 @@ echo $PASSWORD
 # Generate private keys for use by Ansible
 echo $(date) " - Generating Private keys for use by Ansible for OpenShift Installation"
 
-echo "Generating keys"
+echo "Generating Private Keys"
 
 runuser -l $SUDOUSER -c "echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa"
 runuser -l $SUDOUSER -c "chmod 600 ~/.ssh/id_rsa*"
+echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa
 
 echo "Configuring SSH ControlPath to use shorter path name"
 
