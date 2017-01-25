@@ -201,6 +201,7 @@
 		"virtualNetworkName": "openshiftvnet",
 		"masterSubnetName": "mastersubnet",
 		"nodeSubnetName": "nodesubnet",
+		"bastionPublicIp": "bastionpublicip",
 		
 		"masterLoadBalancerName": "[concat(variables('openshiftMasterHostname'), 'lb')]",
 		"masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('openshiftMasterPublicIpDnsLabel'))]",
@@ -650,7 +651,7 @@
 			}
 		}, {
 			"type": "Microsoft.Network/publicIPAddresses",
-			"name": "bastionpublicip",
+			"name": "[variables('bastionPublicIp')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -917,6 +918,9 @@
 					"name": "[concat(variables('openshiftBastionHostname'), 'ipconfig')]",
 					"properties": {
 						"privateIPAllocationMethod": "Dynamic",
+						"publicIPAddress": {
+							"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/publicIPAddresses/', variables('bastionPublicIp'))]"
+						},
 						"subnet": {
 							"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('masterSubnetName'))]"
 						}

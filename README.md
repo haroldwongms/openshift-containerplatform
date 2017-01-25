@@ -8,13 +8,14 @@ Deploy to Azure using Auzre Portal:
 
 This template deploys OpenShift Container Platform with basic username / password for authentication to OpenShift. It includes the following resources:
 
-|Resource           |Properties                                                                                                                          |
-|-------------------|------------------------------------------------------------------------------------------------------------------------------------|
-|Virtual Network    |**Address prefix:** 192.168.0.0/16<br />**Master subnet:** 192.168.1.0/24<br />**Node subnet:** 192.168.2.0/24                               |
-|Load Balancer      |2 probes and two rules for TCP 80 and TCP 443 <br/> NAT rules for SSH on Ports 2200-220X                                                                                  |
-|Public IP Addresses|OpenShift Master public IP<br />OpenShift Router public IP attached to Load Balancer                                                |
-|Storage Accounts   |2 Storage Accounts                                                                                                                  |
-|Virtual Machines   |1 or 3 Masters<br />1 or 3 Infra nodes<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
+|Resource           	|Properties                                                                                                                          |
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------------|
+|Virtual Network   		|**Address prefix:** 192.168.0.0/16<br />**Master subnet:** 192.168.1.0/24<br />**Node subnet:** 192.168.2.0/24                      |
+|Master Load Balancer	|2 probes and 2 rules for TCP 8443 and TCP 9090 <br/> NAT rules for SSH on Ports 2200-220X                                           |
+|Infra Load Balancer	|3 probes and 3 rules for TCP 80, TCP 443 and TCP 9090 									                                             |
+|Public IP Addresses	|OpenShift Master public IP attached Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
+|Storage Accounts   	|2 Storage Accounts                                                                                                                  |
+|Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1 or 3 Masters<br />1 or 3 Infra nodes<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
 
 ## Prerequisites
 
