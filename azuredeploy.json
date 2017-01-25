@@ -5,7 +5,7 @@
 		"_artifactsLocation": {
 			"type": "string",
 			"metadata": {
-				"description": "Base URL for Template FIles",
+				"description": "Base URL for Template Files",
 				"artifactsBaseUrl": ""
 			},
 			"defaultValue": "https://raw.githubusercontent.com/haroldwongms/openshift-containerplatform/master/"
@@ -52,6 +52,7 @@
 		},
 		"openshiftClusterPrefix": {
 			"type": "string",
+			"defaultValue": "aacl",
 			"minLength": 1,
 			"maxLength": 5,
 			"metadata": {
@@ -74,6 +75,7 @@
 		},
 		"masterInstanceCount": {
 			"type": "int",
+			"defaultValue": 1,
 			"minValue": 1,
 			"allowedValues": [1, 3],
 			"metadata": {
@@ -82,6 +84,7 @@
 		},
 		"nodeInstanceCount": {
 			"type": "int",
+			"defaultValue": 1,
 			"minValue": 1,
 			"allowedValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 			"metadata": {
@@ -90,6 +93,7 @@
 		},
 		"dataDiskSize": {
 			"type": "int",
+			"defaultValue": 128,
 			"minValue": 1,
 			"allowedValues": [128, 512, 1023],
 			"metadata": {
@@ -98,6 +102,7 @@
 		},
 		"adminUsername": {
 			"type": "string",
+			"defaultValue": "ocpadmin",
 			"minLength": 1,
 			"metadata": {
 				"description": "Administrator username on all VMs and first user created for OpenShift login"
@@ -170,6 +175,7 @@
 		},
 		"defaultSubDomain": {
 			"type": "string",
+			"defaultValue": "contoso.com",
 			"minLength": 1,
 			"metadata": {
 				"description": "Default Subdomain for application routing (Wildcard DNS) - must enter something even if you are using xip.io"
