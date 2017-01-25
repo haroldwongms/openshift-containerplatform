@@ -1047,7 +1047,7 @@
 					"vmSize": "[parameters('masterVmSize')]"
 				},
 				"osProfile": {
-					"computerName": "[(variables('openshiftBastionHostname')]",
+					"computerName": "[variables('openshiftBastionHostname')]",
 					"adminUsername": "[parameters('adminUsername')]",
 					"linuxConfiguration": {
 						"disablePasswordAuthentication": true,
