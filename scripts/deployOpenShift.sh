@@ -19,7 +19,7 @@ ROUTING=${11}
 MASTERLOOP=$((MASTERCOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
 
-# DOMAIN=$( awk 'NR==2' /etc/resolv.conf | awk '{ print $2 }' )
+DOMAIN=$( awk 'NR==2' /etc/resolv.conf | awk '{ print $2 }' )
 
 echo $PASSWORD
 
@@ -30,9 +30,6 @@ echo "Generating Private Keys"
 
 runuser -l $SUDOUSER -c "echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa"
 runuser -l $SUDOUSER -c "chmod 600 ~/.ssh/id_rsa*"
-#mkdir ~/.ssh
-#echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa
-#chmod 600 ~/.ssh/id_rsa
 
 echo "Configuring SSH ControlPath to use shorter path name"
 
@@ -89,13 +86,13 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 
 # host group for masters
 [masters]
-$MASTER-0
+$MASTER-0.$DOMAIN
 
 # host group for nodes
 [nodes]
-$MASTER-0 openshift_node_labels="{'region': 'master', 'zone': 'default'}"
-$INFRA-0 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
-$NODE-[0:${NODELOOP}] openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
+$MASTER-0.$DOMAIN openshift_node_labels="{'region': 'master', 'zone': 'default'}"
+$INFRA-0.$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+$NODE-[0:${NODELOOP}].$DOMAIN openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
 EOF
 
 else
@@ -127,17 +124,17 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 
 # host group for masters
 [masters]
-$MASTER-[0:${MASTERLOOP}]
+$MASTER-[0:${MASTERLOOP}].$DOMAIN
 
 # host group for etcd
 [etcd]
-$MASTER-[0:${MASTERLOOP}]
+$MASTER-[0:${MASTERLOOP}].$DOMAIN
 
 # host group for nodes
 [nodes]
-$MASTER-[0:${MASTERLOOP}] openshift_node_labels="{'region': 'master', 'zone': 'default'}"
-$INFRA-[0:${MASTERLOOP}] openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
-$NODE-[0:${NODELOOP}] openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
+$MASTER-[0:${MASTERLOOP}].$DOMAIN openshift_node_labels="{'region': 'master', 'zone': 'default'}"
+$INFRA-[0:${MASTERLOOP}].$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+$NODE-[0:${NODELOOP}].$DOMAIN openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
 EOF
 
 fi
