@@ -19,14 +19,14 @@ ROUTING=${11}
 MASTERLOOP=$((MASTERCOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
 
-# DOMAIN=$( awk 'NR==2' /etc/resolv.conf | awk '{ print $2 }' )
+DOMAIN=$( awk 'NR==2' /etc/resolv.conf | awk '{ print $2 }' )
 
 echo $PASSWORD
 
 # Generate private keys for use by Ansible
 echo $(date) " - Generating Private keys for use by Ansible for OpenShift Installation"
 
-echo "Generating keys"
+echo "Generating Private Keys"
 
 runuser -l $SUDOUSER -c "echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa"
 runuser -l $SUDOUSER -c "chmod 600 ~/.ssh/id_rsa*"
@@ -36,6 +36,24 @@ echo "Configuring SSH ControlPath to use shorter path name"
 sed -i -e "s/^# control_path = %(directory)s\/%%h-%%r/control_path = %(directory)s\/%%h-%%r/" /etc/ansible/ansible.cfg
 sed -i -e "s/^#host_key_checking = False/host_key_checking = False/" /etc/ansible/ansible.cfg
 sed -i -e "s/^#pty=False/pty=False/" /etc/ansible/ansible.cfg
+
+# Create Ansible Playbook for Post Installation task
+echo $(date) " - Create Ansible Playbook for Post Installation task"
+
+cat > /home/${SUDOUSER}/postinstall.yml <<EOF
+---
+- hosts: masters
+  remote_user: ${SUDOUSER}
+  become: yes
+  become_method: sudo
+  vars:
+    description: "Create OpenShift Users"
+  tasks:
+  - name: create directory
+    file: path=/etc/origin/master state=directory
+  - name: add initial OpenShift user
+    shell: htpasswd -cb /etc/origin/master/htpasswd ${SUDOUSER} "${PASSWORD}"
+EOF
 
 # Create Ansible Hosts File
 echo $(date) " - Create Ansible Hosts file"
@@ -68,13 +86,13 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 
 # host group for masters
 [masters]
-$MASTER-0
+$MASTER-0.$DOMAIN
 
 # host group for nodes
 [nodes]
-$MASTER-0 openshift_node_labels="{'region': 'master', 'zone': 'default'}"
-$INFRA-0 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
-$NODE-[0:${NODELOOP}] openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
+$MASTER-0.$DOMAIN openshift_node_labels="{'region': 'master', 'zone': 'default'}"
+$INFRA-0.$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+$NODE-[0:${NODELOOP}].$DOMAIN openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
 EOF
 
 else
@@ -106,17 +124,17 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 
 # host group for masters
 [masters]
-$MASTER-[0:${MASTERLOOP}]
+$MASTER-[0:${MASTERLOOP}].$DOMAIN
 
 # host group for etcd
 [etcd]
-$MASTER-[0:${MASTERLOOP}]
+$MASTER-[0:${MASTERLOOP}].$DOMAIN
 
 # host group for nodes
 [nodes]
-$MASTER-[0:${MASTERLOOP}] openshift_node_labels="{'region': 'master', 'zone': 'default'}"
-$INFRA-[0:${MASTERLOOP}] openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
-$NODE-[0:${NODELOOP}] openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
+$MASTER-[0:${MASTERLOOP}].$DOMAIN openshift_node_labels="{'region': 'master', 'zone': 'default'}"
+$INFRA-[0:${MASTERLOOP}].$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+$NODE-[0:${NODELOOP}].$DOMAIN openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
 EOF
 
 fi
@@ -144,7 +162,8 @@ sed -i -e "s/# Defaults    requiretty/Defaults    requiretty/" /etc/sudoers
 # Adding user to OpenShift authentication file
 echo $(date) "- Adding OpenShift user"
 
-mkdir -p /etc/origin/master
-htpasswd -cb /etc/origin/master/htpasswd $SUDOUSER "$PASSWORD"
+# mkdir -p /etc/origin/master
+# htpasswd -cb /etc/origin/master/htpasswd $SUDOUSER "$PASSWORD"
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall.yml"
 
 echo $(date) " - Script complete"
