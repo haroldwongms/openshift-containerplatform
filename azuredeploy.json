@@ -189,6 +189,7 @@
 		"apiVersionStorage": "2015-06-15",
 		"apiVersionLinkTemplate": "2015-01-01",
 		"namingInfix": "[toLower(parameters('openshiftClusterPrefix'))]",
+		"openshiftBastionHostname": "[concat(variables('namingInfix'), 'b')]",
 		"openshiftMasterHostname": "[concat(variables('namingInfix'), 'm')]",
 		"openshiftNodeHostname": "[concat(variables('namingInfix'), 'n')]",
 		"openshiftInfraHostname": "[concat(variables('namingInfix'), 'i')]",
@@ -199,7 +200,7 @@
 		"nodeSubnetPrefix": "192.168.2.0/24",
 		"virtualNetworkName": "openshiftvnet",
 		"masterSubnetName": "mastersubnet",
-		"nodeSubnetName": "[concat(variables('openshiftNodeHostname'), 'subnet')]",
+		"nodeSubnetName": "nodesubnet",
 		
 		"masterLoadBalancerName": "[concat(variables('openshiftMasterHostname'), 'lb')]",
 		"masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('openshiftMasterPublicIpDnsLabel'))]",
@@ -227,8 +228,10 @@
 		"imageReference": "[variables('osType')]",
 		"singlequote": "'",
 		"sshKeyPath": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+		"bastionPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/bastionPrep.sh')]",
 		"nodePrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/nodePrep.sh')]",
 		"masterPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/masterPrep.sh')]",
+		"bastionPrepScriptFileName": "bastionPrep.sh",
 		"nodePrepScriptFileName": "nodePrep.sh",
 		"masterPrepScriptFileName": "masterPrep.sh",
 		"openshiftDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/openshiftdeploy.json')]",
@@ -397,6 +400,27 @@
 	"resources": [
 
 		{
+			"apiVersion": "[variables('apiVersionNetwork')]",
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"name": "[concat(variables('openshiftBastionHostname'), '-nsg')]",
+			"location": "[variables('location')]",
+			"properties": {
+				"securityRules": [{
+					"name": "allowSSHin_all",
+					"properties": {
+						"description": "Allow SSH in from all locations",
+						"protocol": "Tcp",
+						"sourcePortRange": "*",
+						"destinationPortRange": "22",
+						"sourceAddressPrefix": "*",
+						"destinationAddressPrefix": "*",
+						"access": "Allow",
+						"priority": 100,
+						"direction": "Inbound"
+					}
+				}]
+			}
+		}, {
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"type": "Microsoft.Network/networkSecurityGroups",
 			"name": "[concat(variables('openshiftMasterHostname'), '-nsg')]",
@@ -623,6 +647,17 @@
 			},
 			"properties": {
 				"accountType": "[variables('vmSizesMap')[parameters('nodeVmSize')].storageAccountType]"
+			}
+		}, {
+			"type": "Microsoft.Network/publicIPAddresses",
+			"name": "bastionpublicip",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionNetwork')]",
+			"tags": {
+				"displayName": "OpenShiftBastionPublicIP"
+			},
+			"properties": {
+				"publicIPAllocationMethod": "Dynamic"
 			}
 		}, {
 			"type": "Microsoft.Network/publicIPAddresses",
@@ -867,6 +902,32 @@
 			}
 		}, {
 			"type": "Microsoft.Network/networkInterfaces",
+			"name": "[concat(variables('openshiftBastionHostname'), 'nic')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionNetwork')]",
+			"tags": {
+				"displayName": "OpenShiftBastionNetworkInterface"
+			},
+			"dependsOn": [
+				"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+				"[concat('Microsoft.Network/networkSecurityGroups/', variables('openshiftBastionHostname'), '-nsg')]"
+			],
+			"properties": {
+				"ipConfigurations": [{
+					"name": "[concat(variables('openshiftBastionHostname'), 'ipconfig')]",
+					"properties": {
+						"privateIPAllocationMethod": "Dynamic",
+						"subnet": {
+							"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('masterSubnetName'))]"
+						}
+					}
+				}],
+				"networkSecurityGroup": {
+					"id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('openshiftBastionHostname'), '-nsg'))]"
+				}
+			}
+		}, {
+			"type": "Microsoft.Network/networkInterfaces",
 			"name": "[concat(variables('openshiftMasterHostname'), copyIndex(), 'nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
@@ -877,7 +938,7 @@
 				"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
 				"[concat('Microsoft.Network/loadBalancers/', variables('masterLoadBalancerName'))]",
 				"[concat(variables('masterLbId'), '/inboundNatRules/SSH-', variables('openshiftMasterHostname') ,copyIndex())]",
-				"[concat('Microsoft.Network/networkSecurityGroups/', variables('openshiftNodeHostname'), '-nsg')]"
+				"[concat('Microsoft.Network/networkSecurityGroups/', variables('openshiftMasterHostname'), '-nsg')]"
 			],
 			"copy": {
 				"name": "masterNicLoop",
@@ -967,6 +1028,52 @@
 				}],
 				"networkSecurityGroup": {
 					"id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('openshiftNodeHostname'), '-nsg'))]"
+				}
+			}
+		}, {
+			"type": "Microsoft.Compute/virtualMachines",
+			"name": "[variables('openshiftBastionHostname')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionCompute')]",
+			"tags": {
+				"displayName": "OpenShiftBastionVirtualMachine"
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
+				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftBastionHostname'), 'nic')]"
+			],
+			"properties": {
+				"hardwareProfile": {
+					"vmSize": "[parameters('masterVmSize')]"
+				},
+				"osProfile": {
+					"computerName": "[(variables('openshiftBastionHostname')]",
+					"adminUsername": "[parameters('adminUsername')]",
+					"linuxConfiguration": {
+						"disablePasswordAuthentication": true,
+						"ssh": {
+							"publicKeys": [{
+								"path": "[variables('sshKeyPath')]",
+								"keyData": "[parameters('sshPublicKey')]"
+							}]
+						}
+					}
+				},
+				"storageProfile": {
+					"imageReference": "[variables('imageReference')]",
+					"osDisk": {
+						"name": "[concat(variables('openshiftBastionHostname'), 'osdisk')]",
+						"vhd": {
+							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftBastionHostname'), '.vhd')]"
+						},
+						"caching": "ReadWrite",
+						"createOption": "FromImage"
+					}
+				},
+				"networkProfile": {
+					"networkInterfaces": [{
+						"id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('openshiftBastionHostname'), 'nic'))]"
+					}]
 				}
 			}
 		}, {
@@ -1157,7 +1264,32 @@
 			}
 		}, {
 			"type": "Microsoft.Compute/virtualMachines/extensions",
-			"name": "[concat(variables('openshiftMasterHostname'), '-', copyIndex(), '/deployOpenShift')]",
+			"name": "[concat(variables('openshiftBastionHostname'), '/deployOpenShift')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionCompute')]",
+			"tags": {
+				"displayName": "PrepBastion"
+			},
+			"dependsOn": [
+				"[concat('Microsoft.Compute/virtualMachines/', variables('openshiftBastionHostname'))]"
+			],
+			"properties": {
+				"publisher": "Microsoft.Azure.Extensions",
+				"type": "CustomScript",
+				"typeHandlerVersion": "2.0",
+				"autoUpgradeMinorVersion": true,
+				"settings": {
+					"fileUris": [
+						"[variables('bastionPrepScriptUrl')]"
+					]
+				},
+				"protectedSettings": {
+					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' ', variables('singlequote'), parameters('cloudAccessPassword'), variables('singlequote'), ' ', parameters('cloudAccessPoolId'))]"
+				}
+			}
+		}, {
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"name": "[concat(variables('openshiftMasterHostname'), '-', copyIndex(), '/prepMasters')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionCompute')]",
 			"tags": {
@@ -1263,6 +1395,9 @@
 					},
 					"apiVersionCompute": {
 						"value": "[variables('apiVersionCompute')]"
+					},
+					"openshiftBastionHostname": {
+						"value": "[variables('openshiftBastionHostname')]"
 					},
 					"openshiftMasterHostname": {
 						"value": "[variables('openshiftMasterHostname')]"
