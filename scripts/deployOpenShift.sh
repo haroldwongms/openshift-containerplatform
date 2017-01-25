@@ -43,7 +43,7 @@ sed -i -e "s/^#pty=False/pty=False/" /etc/ansible/ansible.cfg
 # Create Ansible Playbook for Post Installation task
 echo $(date) " - Create Ansible Playbook for Post Installation task"
 
-cat > /root/postinstall.yml <<EOF
+cat > /home/${SUDOUSER}/postinstall.yml <<EOF
 ---
 - hosts: masters
   remote_user: ${SUDOUSER}
@@ -167,6 +167,6 @@ echo $(date) "- Adding OpenShift user"
 
 # mkdir -p /etc/origin/master
 # htpasswd -cb /etc/origin/master/htpasswd $SUDOUSER "$PASSWORD"
-unuser -l $SUDOUSER -c "ansible-playbook /root/postinstall.yml"
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall.yml"
 
 echo $(date) " - Script complete"
