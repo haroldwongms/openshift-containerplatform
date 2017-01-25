@@ -30,8 +30,9 @@ echo "Generating Private Keys"
 
 runuser -l $SUDOUSER -c "echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa"
 runuser -l $SUDOUSER -c "chmod 600 ~/.ssh/id_rsa*"
-echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa
+#mkdir ~/.ssh
+#echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa
+#chmod 600 ~/.ssh/id_rsa
 
 echo "Configuring SSH ControlPath to use shorter path name"
 
@@ -166,6 +167,6 @@ echo $(date) "- Adding OpenShift user"
 
 # mkdir -p /etc/origin/master
 # htpasswd -cb /etc/origin/master/htpasswd $SUDOUSER "$PASSWORD"
-ansible-playbook /root/postinstall.yml
+unuser -l $SUDOUSER -c "ansible-playbook /root/postinstall.yml"
 
 echo $(date) " - Script complete"
