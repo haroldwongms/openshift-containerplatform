@@ -51,12 +51,6 @@ If you don't already have a user account to access your company's Red Hat user p
 
 You will also need to get the Pool ID that contains your entitlements for OpenShift.  You can retrive this from the Red Hat portal by examining the details of the subscription that has the OpenShift entitlements.  Or you can contact your Red Hat administrator to help you.
 
-Deploy to Azure using Auzre Portal: 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank">
-    <img src="http://armviz.io/visualizebutton.png"/>
-</a>
-
 ### azuredeploy.Parameters.json File Explained
 
 1.  _artifactsLocation: URL for artifacts (json, scripts, etc.)
@@ -82,13 +76,29 @@ Deploy to Azure using Auzre Portal:
 
 ## Deploy Template
 
-Once you have collected all of the prerequisites for the template, you can deploy the template by clicking Deploy to Azure or populating the *azuredeploy.parameters.json* file and executing Resource Manager deployment commands with PowerShell or the xplat CLI.
+Deploy to Azure using Auzre Portal: 
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a><br/>
+
+Once you have collected all of the prerequisites for the template, you can deploy the template by clicking Deploy to Azure or populating the *azuredeploy.parameters.json* file and executing Resource Manager deployment commands with PowerShell or the Azure CLI.
 
 ### NOTE
 
 The OpenShift Ansible playbook does take a while to run when using VMs backed by Standard Storage. VMs backed by Premium Storage are faster. If you want Premimum Storage, select a DS or GS series VM.
 <hr />
 Be sure to follow the OpenShift instructions to create the ncessary DNS entry for the OpenShift Router for access to applications.
+
+### TROUBLESHOOTING
+
+If you encounter an error during deployment of the cluster, plesae view the deployment status.  The following Error Codes will help to narrow things down <br/>
+1. Exit Code 3: Your Red Hat Subscription User Name and / or Password is incorrect
+2. Exit Code 4: Your Red Hat Pool ID is incorrect or there are no entitlements available
+3. Exit Code 5: Unable to provision Docker Thin Pool Volume
+
+For further troubleshooting, please SSH into your Bastion node on port 22.  You will need to be root (sudo su -) and then navigate to the following directory: /var/lib/waagent/custom-script/download<br/><br/>
+You should see a folder named '0' and '1'.  In each of these folders, you will see two files, stderr and stdout.  You can look through these files to determine where the failure occurred.
 
 ## Post-Deployment Operations
 
