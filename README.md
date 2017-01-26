@@ -49,7 +49,7 @@ You will need to create a Key Vault to store your SSH Private Key that will then
 
 If you don't already have a user account to access your company's Red Hat user portal, please contact your administrator.  You will need to ensure your Red Hat subscription credentials are in working order by logging into https://access.redhat.com.<br/>
 
-You will also need to get the Pool ID that contains your entitlements for OpenShift.  You can retrive this from the Red Hat portal by examining the details of the subscription that has the OpenShift entitlements.  Or you can contact your Red Hat administrator to help you.
+You will also need to get the Pool ID that contains your entitlements for OpenShift.  You can retrieve this from the Red Hat portal by examining the details of the subscription that has the OpenShift entitlements.  Or you can contact your Red Hat administrator to help you.
 
 ### azuredeploy.Parameters.json File Explained
 
@@ -76,7 +76,7 @@ You will also need to get the Pool ID that contains your entitlements for OpenSh
 
 ## Deploy Template
 
-Deploy to Azure using Auzre Portal: 
+Deploy to Azure using Azure Portal: 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
 <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
@@ -86,13 +86,14 @@ Once you have collected all of the prerequisites for the template, you can deplo
 
 ### NOTE
 
-The OpenShift Ansible playbook does take a while to run when using VMs backed by Standard Storage. VMs backed by Premium Storage are faster. If you want Premimum Storage, select a DS or GS series VM.
+The OpenShift Ansible playbook does take a while to run when using VMs backed by Standard Storage. VMs backed by Premium Storage are faster. If you want Premium Storage, select a DS or GS series VM.
 <hr />
-Be sure to follow the OpenShift instructions to create the ncessary DNS entry for the OpenShift Router for access to applications.
+Be sure to follow the OpenShift instructions to create the necessary DNS entry for the OpenShift Router for access to applications.
 
 ### TROUBLESHOOTING
 
-If you encounter an error during deployment of the cluster, plesae view the deployment status.  The following Error Codes will help to narrow things down <br/>
+If you encounter an error during deployment of the cluster, please view the deployment status.  The following Error Codes will help to narrow things down.
+
 1. Exit Code 3: Your Red Hat Subscription User Name and / or Password is incorrect
 2. Exit Code 4: Your Red Hat Pool ID is incorrect or there are no entitlements available
 3. Exit Code 5: Unable to provision Docker Thin Pool Volume
