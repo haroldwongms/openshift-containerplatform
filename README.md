@@ -1,11 +1,5 @@
 # OpenShift Container Platform 3.4 with Username / Password authentication for OpenShift
 
-Deploy to Azure using Auzre Portal: 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank">
-    <img src="http://armviz.io/visualizebutton.png"/>
-</a>
-
 This template deploys OpenShift Container Platform with basic username / password for authentication to OpenShift. It includes the following resources:
 
 |Resource           	|Properties                                                                                                                          |
@@ -26,7 +20,7 @@ This template uses the On-Demand Red Hat Enterprise Linux image from the Azure G
 
 ### Generate SSH Keys
 
-You'll need to generate a an SSH key pair (Public / Private) in order to provision this template. Ensure that you do NOT include a passcode with the private key. <br/><br/>
+You'll need to generate an SSH key pair (Public / Private) in order to provision this template. Ensure that you do NOT include a passcode with the private key. <br/><br/>
 If you are using a Windows computer, you can download puttygen.exe.  You will need to export to OpenSSH (from Conversions menu) to get a valid Private Key for use in the Template.<br/><br/>
 From a Linux or Mac, you can just use the ssh-keygen command.
 
@@ -56,6 +50,12 @@ You will need to create a Key Vault to store your SSH Private Key that will then
 If you don't already have a user account to access your company's Red Hat user portal, please contact your administrator.  You will need to ensure your Red Hat subscription credentials are in working order by logging into https://access.redhat.com.<br/>
 
 You will also need to get the Pool ID that contains your entitlements for OpenShift.  You can retrive this from the Red Hat portal by examining the details of the subscription that has the OpenShift entitlements.  Or you can contact your Red Hat administrator to help you.
+
+Deploy to Azure using Auzre Portal: 
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
 
 ### azuredeploy.Parameters.json File Explained
 
@@ -103,4 +103,4 @@ This template creates an OpenShift user but does not make it a full OpenShift us
    
 ### Additional OpenShift Configuration Options
  
-You can configure additional settings per the official [(<a href="https://docs.openshift.com/container-platform/3.4/welcome/index.html" target="_blank">OpenShift Enterprise Documentation</a>)].
+You can configure additional settings per the official (<a href="https://docs.openshift.com/container-platform/3.4/welcome/index.html" target="_blank">OpenShift Enterprise Documentation</a>).
