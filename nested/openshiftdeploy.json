@@ -14,6 +14,13 @@
 				"description": "API version for compute resources"
 			}
 		},
+		"openshiftBastionHostname": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Bastion hostname"
+			}
+		},
 		"openshiftMasterHostname": {
 			"type": "string",
 			"minLength": 1,
@@ -53,7 +60,7 @@
 			"type": "int",
 			"minValue": 1,
 			"metadata": {
-				"description": "Number of OpenShift nodes"
+				"description": "Number of OpenShift Master nodes"
 			}
 		},
 		"nodeInstanceCount": {
@@ -110,7 +117,7 @@
 	},
 	"resources": [{
 		"type": "Microsoft.Compute/virtualMachines/extensions",
-		"name": "[concat(parameters('openshiftMasterHostname'), '-0', '/deployOpenShift')]",
+		"name": "[concat(parameters('openshiftBastionHostname'), '/deployOpenShift')]",
 		"location": "[resourceGroup().location]",
 		"apiVersion": "[parameters('apiVersionCompute')]",
 		"tags": {
