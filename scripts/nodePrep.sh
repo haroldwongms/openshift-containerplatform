@@ -59,7 +59,7 @@ sed -i -e "s#^OPTIONS='--selinux-enabled'#OPTIONS='--selinux-enabled --insecure-
 # Create thin pool logical volume for Docker
 echo $(date) " - Creating thin pool logical volume for Docker and staring service"
 
-DOCKERVG=$( sfdisk -l | grep -E '16709|66837|133544' | awk -F ":" '{ print $1 }' | awk '{ print $2 }' )
+DOCKERVG=$( parted -m /dev/sda print all 2>/dev/null | grep unknown | cut -d':' -f1 )
 
 echo "DEVS=${DOCKERVG}" >> /etc/sysconfig/docker-storage-setup
 echo "VG=docker-vg" >> /etc/sysconfig/docker-storage-setup
