@@ -55,6 +55,19 @@ cat > /home/${SUDOUSER}/postinstall.yml <<EOF
     shell: htpasswd -cb /etc/origin/master/htpasswd ${SUDOUSER} "${PASSWORD}"
 EOF
 
+cat > /home/${SUDOUSER}/postinstall2.yml <<EOF
+---
+- hosts: masters
+  remote_user: ${SUDOUSER}
+  become: yes
+  become_method: sudo
+  vars:
+    description: "Make user cluster admin"
+  tasks:
+  - name: make OpenShift user cluster admin
+    shell: oadm policy add-cluster-role-to-user cluster-admin $SUDOUSER --config=/etc/origin/master/admin.kubeconfig
+EOF
+
 # Create Ansible Hosts File
 echo $(date) " - Create Ansible Hosts file"
 
@@ -206,6 +219,9 @@ echo $(date) "- Adding OpenShift user"
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall.yml"
 
-oadm policy add-cluster-role-to-user cluster-admin $SUDOUSER --config=/etc/origin/master/admin.kubeconfig
+# Assigning cluster admin rights to OpenShift user
+echo $(date) "- Assigning cluster admin rights to user"
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall2.yml"
 
 echo $(date) " - Script complete"
