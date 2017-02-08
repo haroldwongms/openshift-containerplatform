@@ -168,4 +168,6 @@ echo $(date) "- Adding OpenShift user"
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall.yml"
 
+oadm policy add-cluster-role-to-user cluster-admin $SUDOUSER --config=/etc/origin/master/admin.kubeconfig
+
 echo $(date) " - Script complete"
