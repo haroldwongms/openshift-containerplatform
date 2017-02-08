@@ -82,4 +82,28 @@ fi
 systemctl enable docker
 systemctl start docker
 
+# Prereqs for NFS, if we're $MASTER-0
+# Create a lv with what's left in the docker-vg VG, which depends on disk size defined (100G disk = 60G free)
+
+if hostname -f|grep "-0" >/dev/null
+then
+   yum -y install nfs-utils
+   VGFREESPACE=$(vgs|grep docker-vg|awk '{ print $7 }'|sed 's/.00g/G/')
+   lvcreate -n lv_nfs -L+$VGFREESPACE docker-vg
+   mkfs.xfs /dev/mapper/docker--vg-lv_nfs
+   echo "/dev/mapper/docker--vg-lv_nfs /exports xfs defaults 0 0" >>/etc/fstab
+   mkdir /exports
+   mount -a
+   
+   for item in registry metrics jenkins
+   do 
+      mkdir -p /exports/$item
+   done
+   
+   chown nfsnobody:nfsnobody /exports -R
+   chmod a+rwx /exports -R  
+fi
+
+
+
 echo $(date) " - Script Complete"
