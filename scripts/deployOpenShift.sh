@@ -40,6 +40,7 @@ sed -i -e "s/^#pty=False/pty=False/" /etc/ansible/ansible.cfg
 # Create Ansible Playbook for Post Installation task
 echo $(date) " - Create Ansible Playbook for Post Installation task"
 
+# Run on all masters
 cat > /home/${SUDOUSER}/postinstall.yml <<EOF
 ---
 - hosts: masters
@@ -55,9 +56,10 @@ cat > /home/${SUDOUSER}/postinstall.yml <<EOF
     shell: htpasswd -cb /etc/origin/master/htpasswd ${SUDOUSER} "${PASSWORD}"
 EOF
 
+# Run on only MASTER-0
 cat > /home/${SUDOUSER}/postinstall2.yml <<EOF
 ---
-- hosts: masters
+- hosts: nfs
   remote_user: ${SUDOUSER}
   become: yes
   become_method: sudo
