@@ -73,7 +73,7 @@ EOF
 # Run on all nodes
 cat > /home/${SUDOUSER}/postinstall3.yml <<EOF
 ---
-- hosts: nfs
+- hosts: nodes
   remote_user: ${SUDOUSER}
   become: yes
   become_method: sudo
