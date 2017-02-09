@@ -87,6 +87,7 @@ systemctl start docker
 
 if hostname -f|grep "-0" >/dev/null
 then
+   echo $(date) " - We are on master-0 ($(hostname)): Setting up NFS server for persistent storage"
    yum -y install nfs-utils
    VGFREESPACE=$(vgs|grep docker-vg|awk '{ print $7 }'|sed 's/.00g/G/')
    lvcreate -n lv_nfs -L+$VGFREESPACE docker-vg
@@ -94,6 +95,13 @@ then
    echo "/dev/mapper/docker--vg-lv_nfs /exports xfs defaults 0 0" >>/etc/fstab
    mkdir /exports
    mount -a
+   if [ "$?" -eq 0 ]
+   then
+      echo "$(date) Successfully setup NFS."
+   else
+      echo "$(date) Failed to mount filesystem which is to host the NFS share."
+      exit 5
+   fi
    
    for item in registry metrics jenkins
    do 
