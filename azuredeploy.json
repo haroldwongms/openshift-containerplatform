@@ -133,7 +133,7 @@
 			"type": "string",
 			"minLength": 1,
 			"metadata": {
-				"description": "Pool ID with OpenShift entitlements"
+				"description": "Pool ID with OpenShift entitlements (To find it, run on registered server: subscription-manager list)"
 			}
 		},
 		"sshPublicKey": {
