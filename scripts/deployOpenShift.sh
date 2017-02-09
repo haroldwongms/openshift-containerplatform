@@ -70,6 +70,20 @@ cat > /home/${SUDOUSER}/postinstall2.yml <<EOF
     shell: oadm policy add-cluster-role-to-user cluster-admin $SUDOUSER --config=/etc/origin/master/admin.kubeconfig
 EOF
 
+# Run on all nodes
+cat > /home/${SUDOUSER}/postinstall3.yml <<EOF
+---
+- hosts: nfs
+  remote_user: ${SUDOUSER}
+  become: yes
+  become_method: sudo
+  vars:
+    description: "Set password for Cockpit"
+  tasks:
+  - name: configure Cockpit password
+    shell: echo "${PASSWORD}"|passwd root --stdin
+EOF
+
 # Create Ansible Hosts File
 echo $(date) " - Create Ansible Hosts file"
 
@@ -255,5 +269,10 @@ runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall.yml"
 echo $(date) "- Assigning cluster admin rights to user"
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall2.yml"
+
+# Setting password for Cockpit
+echo $(date) "- Assigning password for root, which is used to login to Cockpit"
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall3.yml"
 
 echo $(date) " - Script complete"
