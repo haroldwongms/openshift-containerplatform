@@ -85,7 +85,7 @@ systemctl start docker
 # Prereqs for NFS, if we're $MASTER-0
 # Create a lv with what's left in the docker-vg VG, which depends on disk size defined (100G disk = 60G free)
 
-if hostname -f|grep "-0" >/dev/null
+if hostname -f|grep -- "-0" >/dev/null
 then
    echo $(date) " - We are on master-0 ($(hostname)): Setting up NFS server for persistent storage"
    yum -y install nfs-utils
