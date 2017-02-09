@@ -8,7 +8,7 @@
 				"description": "Base URL for Template Files",
 				"artifactsBaseUrl": ""
 			},
-			"defaultValue": "https://raw.githubusercontent.com/haroldwongms/openshift-containerplatform/master/"
+			"defaultValue": "https://raw.githubusercontent.com/mglantz/openshift-containerplatform/master/"
 		},
 		"masterVmSize": {
 			"type": "string",
