@@ -105,7 +105,7 @@ You should see a folder named '0' and '1'.  In each of these folders, you will s
 To display metrics and logs, you need to logon to OpenShift ( https://publicDNSname:8443 ) go into the logging project, click on the Kubana route and accept the SSL exception in your brower, then do the same with the Hawkster metrics route in the openshift-infra project.
 
 To create additional (non-admin) users in your environment, login to your master server(s) via SSH and run:
-<i>htpasswd /etc/origin/master/htpasswd mynewuser</i>
+<br><i>htpasswd /etc/origin/master/htpasswd mynewuser</i>
    
 ### Additional OpenShift Configuration Options
  
