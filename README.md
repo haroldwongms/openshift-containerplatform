@@ -102,7 +102,7 @@ For further troubleshooting, please SSH into your Bastion node on port 22.  You 
 You should see a folder named '0' and '1'.  In each of these folders, you will see two files, stderr and stdout.  You can look through these files to determine where the failure occurred.
 
 ## Post-Deployment Operations
-To display metrics and logs, you need to go into the logging project, click on the kubana router and accept the SSL exception in your brower, then do the same with the Hawkster metrics router in the openshift-infra project.
+To display metrics and logs, you need to logon to OpenShift ( https://publicDNSname:8443 ) go into the logging project, click on the Kubana route and accept the SSL exception in your brower, then do the same with the Hawkster metrics route in the openshift-infra project.
 
 To create additional (non-priviledged) users in your environment, login to your master server(s) via SSH and run:
 # htpasswd /etc/origin/master/htpasswd mynewuser
