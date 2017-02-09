@@ -37,26 +37,6 @@ sed -i -e "s/^# control_path = %(directory)s\/%%h-%%r/control_path = %(directory
 sed -i -e "s/^#host_key_checking = False/host_key_checking = False/" /etc/ansible/ansible.cfg
 sed -i -e "s/^#pty=False/pty=False/" /etc/ansible/ansible.cfg
 
-# Create Ansible Playbook for Pre Installation task
-echo $(date) " - Create Ansible Playbook for Pre Installation task"
-
-cat > /home/${SUDOUSER}/preinstall.yml <<EOF
----
-- hosts: masters
-  remote_user: ${SUDOUSER}
-  become: yes
-  become_method: sudo
-  vars:
-    description: "Ensure NFS is correctly installed"
-  tasks:
-  - name: create directory
-    file: path=/exports state=directory
-  - name: configure ownership
-    shell: chown nfsnobody:nfsnobody /exports -R
-  - name: configure permissions
-    shell: chmod a+rwx /exports -R
-EOF
-
 # Create Ansible Playbook for Post Installation task
 echo $(date) " - Create Ansible Playbook for Post Installation task"
 
@@ -213,11 +193,6 @@ $NODE-[0:${NODELOOP}].$DOMAIN openshift_node_labels="{'region': 'nodes', 'zone':
 EOF
 
 fi
-
-# Enforcing ownership and permissions of NFS share
-echo $(date) "- Ensure NFS is setup correctly"
-
-runuser -l $SUDOUSER -c "ansible-playbook ~/preinstall.yml"
 
 # Initiating installation of OpenShift Container Platform using Ansible Playbook
 echo $(date) " - Installing OpenShift Container Platform via Ansible Playbook"
