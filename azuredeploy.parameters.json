@@ -5,6 +5,12 @@
 		"_artifactsLocation": {
 			"value": "https://raw.githubusercontent.com/haroldwongms/openshift-containerplatform/master/"
 		},
+		"osDiskStorageAccount": {
+			"value": "https://osDiskStorageAccount.blob.core.windows.net/"
+		},
+		"osDiskName": {
+			"value": "images/customosdisk.vhd"
+		},
 		"masterVmSize": {
 			"value": "Standard_DS2_v2"
 		},
