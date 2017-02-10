@@ -739,6 +739,7 @@
 							"id": "[variables('masterLbBackendPoolId')]"
 						},
 						"protocol": "Tcp",
+						"loadDistribution": "SourceIP",
 						"frontendPort": 8443,
 						"backendPort": 8443,
 						"probe": {
