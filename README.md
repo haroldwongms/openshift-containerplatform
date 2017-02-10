@@ -1,4 +1,4 @@
-# OpenShift Container Platform 3.4 with Username / Password authentication for OpenShift
+# OpenShift Container Platform 3.4 with Username / Password authentication for OpenShift using Custom OS Image (VHD)
 
 This template deploys OpenShift Container Platform with basic username / password for authentication to OpenShift. It includes the following resources:
 
@@ -14,7 +14,9 @@ This template deploys OpenShift Container Platform with basic username / passwor
 
 This template deploys multiple VMs and requires some pre-work before you can successfully deploy the OpenShift Cluster.  If you don't get the pre-work done correctly, you will most likely fail to deploy the cluster using this template.  Please read the instructions completely before you proceed. 
 
-This template uses the On-Demand Red Hat Enterprise Linux image from the Azure Gallery.  This means there is an hourly charge for using this image.  At the same time, the instance will be registered to your Red Hat subscription so you will also be using one of your entitlements.  For this reason, this template is good for setting up temporary POCs or learning environments but not meant for production due to the "double billing".
+This template uses a custom OS image (VHD) that you must create and upload to an Azure Storage Account.  
+
+The only difference between this branch and the master is the azuredeploy.json and azuredeploy.parameters.json files.  The scripts are identical.
 
 ## Prerequisites
 
@@ -54,25 +56,27 @@ You will also need to get the Pool ID that contains your entitlements for OpenSh
 ### azuredeploy.Parameters.json File Explained
 
 1.  _artifactsLocation: URL for artifacts (json, scripts, etc.)
-2.  masterVmSize: Select from one of the allowed VM sizes listed in the azuredeploy.json file
-3.  nodeVmSize: Select from one of the allowed VM sizes listed in the azuredeploy.json file
-4.  openshiftClusterPrefix: Cluster Prefix used to configure hostnames for all nodes - bastion, master, infra and nodes (between 1 and 5 characters)
-5.  openshiftMasterPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Master Node by
-6.  infraLbPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Node Load Balancer by.  Used to access deployed applications
-7.  masterInstanceCount: Number of Masters and Infra nodes to deploy
-8.  nodeInstanceCount: Number of Nodes to deploy
-9.  dataDiskSize: Size of data disk to attach to nodes for Docker volume - valid sizes are 128 GB, 512 GB and 1023 GB
-10. adminUsername: Admin username for both OS (VM) login and initial OpenShift user
-11. openshiftPassword: Password for OpenShift user
-12. cloudAccessUsername: Your Red Hat Cloud Access subscription user name
-13. cloudAccessPassword: The password for your Red Hat Cloud Access subscription
-14. cloudAccessPoolId: The Pool ID that contains your OpenShift entitlements
-15. sshPublicKey: Copy your SSH Public Key here
-16. keyVaultResourceGroup: The name of the Resource Group that contains the Key Vault
-17. keyVaultName: The name of the Key Vault you created
-18. keyVaultSecret: The Secret Name you used when creating the Secret (that contains the Private Key)
-19. defaultSubDomainType: This will either be xipio (if you don't have your own domain) or custom if you have your own domain that you would like to use for routing
-20. defaultSubDomain: The wildcard DNS name you would like to use for routing if you selected custom above.  If you selected xipio above, you must still enter something here but it will not be used
+2.  osDiskStorageAccount: The full URL for the storage account that contains the custom OS image.  This will have the format https://storageaccountname.blob.core.windows.net/.  Be sure to include the / at the end.
+3.  osDiskName: The name of of the disk preceeded by the container (Folder) in which the image sits.  Example: images/customosdisk.vhd 
+4.  masterVmSize: Select from one of the allowed VM sizes listed in the azuredeploy.json file
+5.  nodeVmSize: Select from one of the allowed VM sizes listed in the azuredeploy.json file
+6.  openshiftClusterPrefix: Cluster Prefix used to configure hostnames for all nodes - bastion, master, infra and nodes (between 1 and 5 characters)
+7.  openshiftMasterPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Master Node by
+8.  infraLbPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Node Load Balancer by.  Used to access deployed applications
+9.  masterInstanceCount: Number of Masters and Infra nodes to deploy
+10. nodeInstanceCount: Number of Nodes to deploy
+11. dataDiskSize: Size of data disk to attach to nodes for Docker volume - valid sizes are 128 GB, 512 GB and 1023 GB
+12. adminUsername: Admin username for both OS (VM) login and initial OpenShift user
+13. openshiftPassword: Password for OpenShift user
+14. cloudAccessUsername: Your Red Hat Cloud Access subscription user name
+15. cloudAccessPassword: The password for your Red Hat Cloud Access subscription
+16. cloudAccessPoolId: The Pool ID that contains your OpenShift entitlements
+17. sshPublicKey: Copy your SSH Public Key here
+18. keyVaultResourceGroup: The name of the Resource Group that contains the Key Vault
+19. keyVaultName: The name of the Key Vault you created
+20. keyVaultSecret: The Secret Name you used when creating the Secret (that contains the Private Key)
+21. defaultSubDomainType: This will either be xipio (if you don't have your own domain) or custom if you have your own domain that you would like to use for routing
+22. defaultSubDomain: The wildcard DNS name you would like to use for routing if you selected custom above.  If you selected xipio above, you must still enter something here but it will not be used
 
 ## Deploy Template
 
@@ -97,6 +101,7 @@ If you encounter an error during deployment of the cluster, please view the depl
 1. Exit Code 3: Your Red Hat Subscription User Name and / or Password is incorrect
 2. Exit Code 4: Your Red Hat Pool ID is incorrect or there are no entitlements available
 3. Exit Code 5: Unable to provision Docker Thin Pool Volume
+4. Exit Code 6: NFS storage was not provisioned correctly
 
 For further troubleshooting, please SSH into your Bastion node on port 22.  You will need to be root (sudo su -) and then navigate to the following directory: /var/lib/waagent/custom-script/download<br/><br/>
 You should see a folder named '0' and '1'.  In each of these folders, you will see two files, stderr and stdout.  You can look through these files to determine where the failure occurred.
