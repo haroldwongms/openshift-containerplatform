@@ -10,6 +10,20 @@
 			},
 			"defaultValue": "https://raw.githubusercontent.com/haroldwongms/openshift-containerplatform/master/"
 		},
+		"osDiskStorageAccount": {
+			"type": "string",
+			"metadata": {
+				"description": "Storage account that contains the custom OS Disk.  This is the full URL of the Storage Account. Include the ending /"
+			},
+			"defaultValue": "https://osdiskstorageaccount.blob.core.windows.net/"
+		},
+		"osDiskName": {
+			"type": "string",
+			"metadata": {
+				"description": "The name of the custom OS Disk and the folder it is located in."
+			},
+			"defaultValue": "images/customosdisk.vhd"
+		},
 		"masterVmSize": {
 			"type": "string",
 			"defaultValue": "Standard_DS2_v2",
@@ -228,6 +242,7 @@
 		},
 		"imageReference": "[variables('osType')]",
 		"singlequote": "'",
+		"customImageName": "[concat(parameters('osDiskStorageAccount'), parameters('osDiskName'))]",
 		"sshKeyPath": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
 		"bastionPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/bastionPrep.sh')]",
 		"nodePrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/nodePrep.sh')]",
@@ -1065,12 +1080,15 @@
 					}
 				},
 				"storageProfile": {
-					"imageReference": "[variables('imageReference')]",
 					"osDisk": {
 						"name": "[concat(variables('openshiftBastionHostname'), 'osdisk')]",
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftBastionHostname'), '.vhd')]"
+						"image": {    
+							"uri": "[variables('customImageName')]"    
 						},
+						"vhd": {
+							"uri": "[concat(parameters('osDiskStorageAccount'), 'vhds/', variables('openshiftBastionHostname'), '.vhd')]"
+						},
+						"osType": "Linux",
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
 					}
@@ -1118,12 +1136,15 @@
 					}
 				},
 				"storageProfile": {
-					"imageReference": "[variables('imageReference')]",
 					"osDisk": {
 						"name": "[concat(variables('openshiftMasterHostname'), copyIndex(), 'osdisk')]",
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftMasterHostname'), copyIndex(), '.vhd')]"
+						"image": {    
+							"uri": "[variables('customImageName')]"    
 						},
+						"vhd": {
+							"uri": "[concat(parameters('osDiskStorageAccount'), 'vhds/', variables('openshiftMasterHostname'), copyIndex(), '.vhd')]"
+						},
+						"osType": "Linux",
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
 					},
@@ -1180,12 +1201,15 @@
 					}
 				},
 				"storageProfile": {
-					"imageReference": "[variables('imageReference')]",
 					"osDisk": {
 						"name": "[concat(variables('openshiftInfraHostname'), copyIndex(), 'osdisk')]",
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftInfraHostname'), copyIndex(), '.vhd')]"
+						"image": {    
+							"uri": "[variables('customImageName')]"    
 						},
+						"vhd": {
+							"uri": "[concat(parameters('osDiskStorageAccount'), 'vhds/', variables('openshiftInfraHostname'), copyIndex(), '.vhd')]"
+						},
+						"osType": "Linux",
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
 					},
@@ -1242,12 +1266,15 @@
 					}
 				},
 				"storageProfile": {
-					"imageReference": "[variables('imageReference')]",
 					"osDisk": {
 						"name": "[concat(variables('openshiftNodeHostname'), copyIndex(), 'osdisk')]",
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountNode')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftNodeHostname'), copyIndex(), '.vhd')]"
+						"image": {    
+							"uri": "[variables('customImageName')]"    
 						},
+						"vhd": {
+							"uri": "[concat(parameters('osDiskStorageAccount'), 'vhds/', variables('openshiftNodeHostname'), copyIndex(), '.vhd')]"
+						},
+						"osType": "Linux",
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
 					},
