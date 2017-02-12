@@ -739,7 +739,7 @@
 							"id": "[variables('masterLbBackendPoolId')]"
 						},
 						"protocol": "Tcp",
-						"sessionPersistence": "Client IP",
+						"LoadBalancerDistribution": "sourceIP",
 						"idleTimeoutInMinutes": 30,
 						"frontendPort": 8443,
 						"backendPort": 8443,
