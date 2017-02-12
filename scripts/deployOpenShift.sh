@@ -15,6 +15,7 @@ NODE=$8
 NODECOUNT=$9
 MASTERCOUNT=${10}
 ROUTING=${11}
+BASTION=$(hostname -f)
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
@@ -170,6 +171,7 @@ masters
 nodes
 etcd
 nfs
+lb
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -185,7 +187,7 @@ osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 
 openshift_master_cluster_method=native
-openshift_master_cluster_hostname=$MASTERPUBLICIPHOSTNAME
+openshift_master_cluster_hostname=$BASTION
 openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
 #openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
 
@@ -232,6 +234,9 @@ $MASTER-[0:${MASTERLOOP}].$DOMAIN
 
 [nfs]
 $MASTER-0.$DOMAIN
+
+[lb]
+$BASTION
 
 # host group for nodes
 [nodes]
