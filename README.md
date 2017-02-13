@@ -9,7 +9,7 @@ This template deploys OpenShift Container Platform with basic username / passwor
 |Infra Load Balancer	|3 probes and 3 rules for TCP 80, TCP 443 and TCP 9090 									                                             |
 |Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
 |Storage Accounts   	|2 Storage Accounts                                                                                                                  |
-|Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1 or 3 Masters. Master 1 is used to run a NFS server to provide persistent storage.<br />1 or 3 Infra nodes<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
+|Virtual Machines   	|1 Bastion Node - Used both to Run Ansible Playbook for OpenShift deployment and to do internal load balancing to the masters<br />1 or 3 Masters. Master 1 is used to run a NFS server to provide persistent storage.<br />1 or 3 Infra nodes<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
 ## READ the instructions in its entirety before deploying!
 
 This template deploys multiple VMs and requires some pre-work before you can successfully deploy the OpenShift Cluster.  If you don't get the pre-work done correctly, you will most likely fail to deploy the cluster using this template.  Please read the instructions completely before you proceed. 
@@ -77,7 +77,7 @@ You will also need to get the Pool ID that contains your entitlements for OpenSh
 ## Deploy Template
 
 Deploy to Azure using Azure Portal: 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmglantz%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
 <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fharoldwongms%2Fopenshift-containerplatform%2Fmaster%2Fazuredeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a><br/>
