@@ -15,6 +15,7 @@ NODE=$8
 NODECOUNT=$9
 MASTERCOUNT=${10}
 ROUTING=${11}
+BASTION=$(hostname -f)
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
@@ -73,7 +74,7 @@ EOF
 # Run on all nodes
 cat > /home/${SUDOUSER}/postinstall3.yml <<EOF
 ---
-- hosts: nfs
+- hosts: nodes
   remote_user: ${SUDOUSER}
   become: yes
   become_method: sudo
@@ -108,10 +109,11 @@ openshift_use_dnsmasq=false
 openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
 osm_use_cockpit=true
+os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 
 openshift_master_cluster_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
-openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
+#openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
 
 # Enable HTPasswdPasswordIdentityProvider
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
@@ -169,6 +171,7 @@ masters
 nodes
 etcd
 nfs
+lb
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -181,11 +184,12 @@ openshift_use_dnsmasq=false
 openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
 osm_use_cockpit=true
+os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 
 openshift_master_cluster_method=native
-openshift_master_cluster_hostname=$MASTERPUBLICIPHOSTNAME
+openshift_master_cluster_hostname=$BASTION
 openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
-openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
+#openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
 
 # Enable HTPasswdPasswordIdentityProvider
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
@@ -230,6 +234,9 @@ $MASTER-[0:${MASTERLOOP}].$DOMAIN
 
 [nfs]
 $MASTER-0.$DOMAIN
+
+[lb]
+$BASTION
 
 # host group for nodes
 [nodes]
