@@ -740,6 +740,7 @@
 						},
 						"protocol": "Tcp",
 						"loadDistribution": "SourceIP",
+						"idleTimeoutInMinutes": 30,
 						"frontendPort": 8443,
 						"backendPort": 8443,
 						"probe": {
@@ -757,6 +758,7 @@
 						},
 						"protocol": "Tcp",
 						"loadDistribution": "SourceIP",
+						"idleTimeoutInMinutes": 30,
 						"frontendPort": 9090,
 						"backendPort": 9090,
 						"probe": {
