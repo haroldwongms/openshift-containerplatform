@@ -739,8 +739,7 @@
 							"id": "[variables('masterLbBackendPoolId')]"
 						},
 						"protocol": "Tcp",
-						"loadDistribution": "sourceIP",
-						"idleTimeoutInMinutes": 30,
+						"loadDistribution": "SourceIP",
 						"frontendPort": 8443,
 						"backendPort": 8443,
 						"probe": {
@@ -757,8 +756,7 @@
 							"id": "[variables('masterLbBackendPoolId')]"
 						},
 						"protocol": "Tcp",
-						"loadDistribution": "sourceIP",
-						"idleTimeoutInMinutes": 30,
+						"loadDistribution": "SourceIP",
 						"frontendPort": 9090,
 						"backendPort": 9090,
 						"probe": {
