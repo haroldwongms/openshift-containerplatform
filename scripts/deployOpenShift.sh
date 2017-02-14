@@ -12,10 +12,10 @@ MASTERPUBLICIPHOSTNAME=$5
 MASTERPUBLICIPADDRESS=$6
 INFRA=$7
 NODE=$8
-NODECOUNT=$9
-MASTERCOUNT=${10}
-ROUTING=${11}
-BASTION=$(hostname -f)
+LB=$9
+NODECOUNT=${10}
+MASTERCOUNT=${11}
+ROUTING=${12}
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
@@ -119,12 +119,18 @@ openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
 # Configure persistent storage via nfs server on master
-openshift_hosted_registry_storage_kind=nfs
-openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
-openshift_hosted_registry_storage_nfs_directory=/exports
-openshift_hosted_registry_storage_volume_name=registry
-openshift_hosted_registry_storage_volume_size=5Gi
+# openshift_hosted_registry_storage_kind=nfs
+# openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+# openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
+# openshift_hosted_registry_storage_nfs_directory=/exports
+# openshift_hosted_registry_storage_volume_name=registry
+# openshift_hosted_registry_storage_volume_size=5Gi
+
+openshift_hosted_registry_storage_kind=azure
+openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
+openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
+openshift_hosted_registry_storage_azure_container=registry
+#openshift_hosted_registry_storage_azure_realm=
 
 # Setup metrics
 openshift_hosted_metrics_deploy=true
@@ -187,7 +193,7 @@ osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 
 openshift_master_cluster_method=native
-openshift_master_cluster_hostname=$BASTION
+openshift_master_cluster_hostname=$LB
 openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
 #openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
 
@@ -195,12 +201,17 @@ openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
 # Configure persistent storage via nfs server on master
-openshift_hosted_registry_storage_kind=nfs
-openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
-openshift_hosted_registry_storage_nfs_directory=/exports
-openshift_hosted_registry_storage_volume_name=registry
-openshift_hosted_registry_storage_volume_size=5Gi
+# openshift_hosted_registry_storage_kind=nfs
+# openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+# openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
+# openshift_hosted_registry_storage_nfs_directory=/exports
+# openshift_hosted_registry_storage_volume_name=registry
+# openshift_hosted_registry_storage_volume_size=5Gi
+openshift_hosted_registry_storage_kind=azure
+openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
+openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
+openshift_hosted_registry_storage_azure_container=registry
+#openshift_hosted_registry_storage_azure_realm=
 
 # Setup metrics
 openshift_hosted_metrics_deploy=true
@@ -236,7 +247,7 @@ $MASTER-[0:${MASTERLOOP}].$DOMAIN
 $MASTER-0.$DOMAIN
 
 [lb]
-$BASTION
+$LB
 
 # host group for nodes
 [nodes]

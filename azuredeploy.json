@@ -193,6 +193,7 @@
 		"openshiftMasterHostname": "[concat(variables('namingInfix'), 'm')]",
 		"openshiftNodeHostname": "[concat(variables('namingInfix'), 'n')]",
 		"openshiftInfraHostname": "[concat(variables('namingInfix'), 'i')]",
+		"openshiftLoadBalancerHostname": "[concat(variables('namingInfix'), 'l')]",
 		"newStorageAccountMaster": "[concat(uniqueString(concat(resourceGroup().id, 'msa', '0')), 'msa')]",
 		"newStorageAccountNode": "[concat(uniqueString(concat(resourceGroup().id, 'nsa', '1')), 'nsa')]",
 		"addressPrefix": "192.168.0.0/16",
@@ -404,6 +405,27 @@
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"type": "Microsoft.Network/networkSecurityGroups",
 			"name": "[concat(variables('openshiftBastionHostname'), '-nsg')]",
+			"location": "[variables('location')]",
+			"properties": {
+				"securityRules": [{
+					"name": "allowSSHin_all",
+					"properties": {
+						"description": "Allow SSH in from all locations",
+						"protocol": "Tcp",
+						"sourcePortRange": "*",
+						"destinationPortRange": "22",
+						"sourceAddressPrefix": "*",
+						"destinationAddressPrefix": "*",
+						"access": "Allow",
+						"priority": 100,
+						"direction": "Inbound"
+					}
+				}]
+			}
+		}, {
+			"apiVersion": "[variables('apiVersionNetwork')]",
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"name": "[concat(variables('openshiftLoadBalancerHostname'), '-nsg')]",
 			"location": "[variables('location')]",
 			"properties": {
 				"securityRules": [{
@@ -934,7 +956,33 @@
 					"id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('openshiftBastionHostname'), '-nsg'))]"
 				}
 			}
-		}, {
+		},  {
+			"type": "Microsoft.Network/networkInterfaces",
+			"name": "[concat(variables('openshiftLoadBalancerHostname'), 'nic')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionNetwork')]",
+			"tags": {
+				"displayName": "OpenShiftLoadBalancerNetworkInterface"
+			},
+			"dependsOn": [
+				"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+				"[concat('Microsoft.Network/networkSecurityGroups/', variables('openshiftLoadBalancerHostname'), '-nsg')]"
+			],
+			"properties": {
+				"ipConfigurations": [{
+					"name": "[concat(variables('openshiftLoadBalancerHostname'), 'ipconfig')]",
+					"properties": {
+						"privateIPAllocationMethod": "Dynamic",
+						"subnet": {
+							"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('masterSubnetName'))]"
+						}
+					}
+				}],
+				"networkSecurityGroup": {
+					"id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('openshiftLoadBalancerHostname'), '-nsg'))]"
+				}
+			}
+		},{
 			"type": "Microsoft.Network/networkInterfaces",
 			"name": "[concat(variables('openshiftMasterHostname'), copyIndex(), 'nic')]",
 			"location": "[variables('location')]",
@@ -1421,6 +1469,9 @@
 					},
 					"openshiftNodeHostname": {
 						"value": "[variables('openshiftNodeHostname')]"
+					},
+					"openshiftLoadBalancerHostname": {
+						"value": "[variables('openshiftLoadBalancerHostname')]"
 					},
 					"masterInstanceCount": {
 						"value": "[parameters('masterInstanceCount')]"
