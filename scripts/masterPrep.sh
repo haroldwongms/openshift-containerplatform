@@ -55,16 +55,16 @@ echo $(date) " - Installing OpenShift utilities"
 
 yum -y install atomic-openshift-utils
 
-# Install Docker 1.12 
-echo $(date) " - Installing Docker 1.12"
+# Install Docker 1.12.5
+echo $(date) " - Installing Docker 1.12.5"
 
-yum -y install docker
+yum -y install docker-1.12.5
 sed -i -e "s#^OPTIONS='--selinux-enabled'#OPTIONS='--selinux-enabled --insecure-registry 172.30.0.0/16'#" /etc/sysconfig/docker
 
 # Create thin pool logical volume for Docker
 echo $(date) " - Creating thin pool logical volume for Docker and staring service"
 
-DOCKERVG=$( sfdisk -l | grep -E '16709|66837|133544' | awk -F ":" '{ print $1 }' | awk '{ print $2 }' )
+DOCKERVG=$( parted -m /dev/sda print all 2>/dev/null | grep unknown | grep /dev/sd | cut -d':' -f1 )
 
 echo "DEVS=${DOCKERVG}" >> /etc/sysconfig/docker-storage-setup
 echo "VG=docker-vg" >> /etc/sysconfig/docker-storage-setup
@@ -81,5 +81,37 @@ fi
 
 systemctl enable docker
 systemctl start docker
+
+# Prereqs for NFS, if we're $MASTER-0
+# Create a lv with what's left in the docker-vg VG, which depends on disk size defined (100G disk = 60G free)
+
+if hostname -f|grep -- "-0" >/dev/null
+then
+   echo $(date) " - We are on master-0 ($(hostname)): Setting up NFS server for persistent storage"
+   yum -y install nfs-utils
+   VGFREESPACE=$(vgs|grep docker-vg|awk '{ print $7 }'|sed 's/.00g/G/')
+   lvcreate -n lv_nfs -L+$VGFREESPACE docker-vg
+   mkfs.xfs /dev/mapper/docker--vg-lv_nfs
+   echo "/dev/mapper/docker--vg-lv_nfs /exports xfs defaults 0 0" >>/etc/fstab
+   mkdir /exports
+   mount -a
+   if [ "$?" -eq 0 ]
+   then
+      echo "$(date) Successfully setup NFS."
+   else
+      echo "$(date) Failed to mount filesystem which is to host the NFS share."
+      exit 6
+   fi
+   
+   for item in registry metrics jenkins
+   do 
+      mkdir -p /exports/$item
+   done
+   
+   chown nfsnobody:nfsnobody /exports -R
+   chmod a+rwx /exports -R  
+fi
+
+
 
 echo $(date) " - Script Complete"

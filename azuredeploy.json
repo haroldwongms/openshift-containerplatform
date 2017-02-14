@@ -86,7 +86,7 @@
 			"type": "int",
 			"defaultValue": 1,
 			"minValue": 1,
-			"allowedValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"allowedValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
 			"metadata": {
 				"description": "Number of OpenShift nodes"
 			}
@@ -133,7 +133,7 @@
 			"type": "string",
 			"minLength": 1,
 			"metadata": {
-				"description": "Pool ID with OpenShift entitlements"
+				"description": "Pool ID with OpenShift entitlements (To find it, run on registered server: subscription-manager list)"
 			}
 		},
 		"sshPublicKey": {
@@ -739,6 +739,8 @@
 							"id": "[variables('masterLbBackendPoolId')]"
 						},
 						"protocol": "Tcp",
+						"loadDistribution": "SourceIP",
+						"idleTimeoutInMinutes": 30,
 						"frontendPort": 8443,
 						"backendPort": 8443,
 						"probe": {
@@ -755,6 +757,8 @@
 							"id": "[variables('masterLbBackendPoolId')]"
 						},
 						"protocol": "Tcp",
+						"loadDistribution": "SourceIP",
+						"idleTimeoutInMinutes": 30,
 						"frontendPort": 9090,
 						"backendPort": 9090,
 						"probe": {

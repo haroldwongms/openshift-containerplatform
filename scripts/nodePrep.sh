@@ -50,16 +50,16 @@ echo $(date) " - Install base packages and update system to latest packages"
 yum -y install wget git net-tools bind-utils iptables-services bridge-utils bash-completion
 yum -y update --exclude=WALinuxAgent
 
-# Install Docker 1.12
-echo $(date) " - Installing Docker 1.12"
+# Install Docker 1.12.5
+echo $(date) " - Installing Docker 1.12.5"
 
-yum -y install docker
+yum -y install docker-1.12.5
 sed -i -e "s#^OPTIONS='--selinux-enabled'#OPTIONS='--selinux-enabled --insecure-registry 172.30.0.0/16'#" /etc/sysconfig/docker
 
 # Create thin pool logical volume for Docker
 echo $(date) " - Creating thin pool logical volume for Docker and staring service"
 
-DOCKERVG=$( sfdisk -l | grep -E '16709|66837|133544' | awk -F ":" '{ print $1 }' | awk '{ print $2 }' )
+DOCKERVG=$( parted -m /dev/sda print all 2>/dev/null | grep unknown | grep /dev/sd | cut -d':' -f1 )
 
 echo "DEVS=${DOCKERVG}" >> /etc/sysconfig/docker-storage-setup
 echo "VG=docker-vg" >> /etc/sysconfig/docker-storage-setup

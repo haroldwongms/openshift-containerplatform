@@ -9,7 +9,7 @@ This template deploys OpenShift Container Platform with basic username / passwor
 |Infra Load Balancer	|3 probes and 3 rules for TCP 80, TCP 443 and TCP 9090 									                                             |
 |Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
 |Storage Accounts   	|2 Storage Accounts                                                                                                                  |
-|Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1 or 3 Masters<br />1 or 3 Infra nodes<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
+|Virtual Machines   	|1 Bastion Node - Used both to Run Ansible Playbook for OpenShift deployment and to do internal load balancing to the masters<br />1 or 3 Masters. Master 1 is used to run a NFS server to provide persistent storage.<br />1 or 3 Infra nodes<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
 ## READ the instructions in its entirety before deploying!
 
 This template deploys multiple VMs and requires some pre-work before you can successfully deploy the OpenShift Cluster.  If you don't get the pre-work done correctly, you will most likely fail to deploy the cluster using this template.  Please read the instructions completely before you proceed. 
@@ -103,14 +103,18 @@ You should see a folder named '0' and '1'.  In each of these folders, you will s
 
 ## Post-Deployment Operations
 
-This template creates an OpenShift user but does not make it a full OpenShift user.  To do that, please perform the following.
+### Metrics and logging
 
-1. SSH in to master node
-2. Execute the following command:
+To display metrics and logs, you need to logon to OpenShift ( https://publicDNSname:8443 ) go into the logging project, click on the Kubana route and accept the SSL exception in your brower, then do the same with the Hawkster metrics route in the openshift-infra project.
 
-   ```sh
-   sudo oadm policy add-cluster-role-to-user cluster-admin <user>
-   ```
+### Creation of additional users
+
+To create additional (non-admin) users in your environment, login to your master server(s) via SSH and run:
+<br><i>htpasswd /etc/origin/master/htpasswd mynewuser</i>
+
+### Access to Cockpit
+
+Use user 'root' and the same password as you assigned to your OpenShift admin to login to Cockpit ( https://publicDNSname:9090 ).
    
 ### Additional OpenShift Configuration Options
  

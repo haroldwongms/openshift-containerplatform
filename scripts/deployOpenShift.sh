@@ -15,6 +15,7 @@ NODE=$8
 NODECOUNT=$9
 MASTERCOUNT=${10}
 ROUTING=${11}
+BASTION=$(hostname -f)
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
@@ -40,6 +41,7 @@ sed -i -e "s/^#pty=False/pty=False/" /etc/ansible/ansible.cfg
 # Create Ansible Playbook for Post Installation task
 echo $(date) " - Create Ansible Playbook for Post Installation task"
 
+# Run on all masters
 cat > /home/${SUDOUSER}/postinstall.yml <<EOF
 ---
 - hosts: masters
@@ -55,6 +57,34 @@ cat > /home/${SUDOUSER}/postinstall.yml <<EOF
     shell: htpasswd -cb /etc/origin/master/htpasswd ${SUDOUSER} "${PASSWORD}"
 EOF
 
+# Run on only MASTER-0
+cat > /home/${SUDOUSER}/postinstall2.yml <<EOF
+---
+- hosts: nfs
+  remote_user: ${SUDOUSER}
+  become: yes
+  become_method: sudo
+  vars:
+    description: "Make user cluster admin"
+  tasks:
+  - name: make OpenShift user cluster admin
+    shell: oadm policy add-cluster-role-to-user cluster-admin $SUDOUSER --config=/etc/origin/master/admin.kubeconfig
+EOF
+
+# Run on all nodes
+cat > /home/${SUDOUSER}/postinstall3.yml <<EOF
+---
+- hosts: nodes
+  remote_user: ${SUDOUSER}
+  become: yes
+  become_method: sudo
+  vars:
+    description: "Set password for Cockpit"
+  tasks:
+  - name: configure Cockpit password
+    shell: echo "${PASSWORD}"|passwd root --stdin
+EOF
+
 # Create Ansible Hosts File
 echo $(date) " - Create Ansible Hosts file"
 
@@ -66,6 +96,7 @@ cat > /etc/ansible/hosts <<EOF
 [OSEv3:children]
 masters
 nodes
+nfs
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -77,17 +108,51 @@ docker_udev_workaround=True
 openshift_use_dnsmasq=false
 openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
-# osm_use_cockpit=false
+osm_use_cockpit=true
+os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 
 openshift_master_cluster_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
-openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
+#openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
 
 # Enable HTPasswdPasswordIdentityProvider
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
+# Configure persistent storage via nfs server on master
+openshift_hosted_registry_storage_kind=nfs
+openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_registry_storage_nfs_directory=/exports
+openshift_hosted_registry_storage_volume_name=registry
+openshift_hosted_registry_storage_volume_size=5Gi
+
+# Setup metrics
+openshift_hosted_metrics_deploy=true
+# As of this writing, there's a bug in the metrics deployment.
+# You'll see the metrics failing to deploy 59 times, it will, though, succeed the 60'th time.
+openshift_hosted_metrics_storage_kind=nfs
+openshift_hosted_metrics_storage_access_modes=['ReadWriteOnce']
+openshift_hosted_metrics_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_metrics_storage_nfs_directory=/exports
+openshift_hosted_metrics_storage_volume_name=metrics
+openshift_hosted_metrics_storage_volume_size=10Gi
+openshift_hosted_metrics_public_url=https://metrics.$ROUTING/hawkular/metrics
+
+# Setup logging
+openshift_hosted_logging_deploy=true
+openshift_hosted_logging_storage_kind=nfs
+openshift_hosted_logging_storage_access_modes=['ReadWriteOnce']
+openshift_hosted_logging_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_logging_storage_nfs_directory=/exports
+openshift_hosted_logging_storage_volume_name=logging
+openshift_hosted_logging_storage_volume_size=10Gi
+openshift_master_logging_public_url=https://kibana.$ROUTING
+
 # host group for masters
 [masters]
+$MASTER-0.$DOMAIN
+
+[nfs]
 $MASTER-0.$DOMAIN
 
 # host group for nodes
@@ -105,6 +170,8 @@ cat > /etc/ansible/hosts <<EOF
 masters
 nodes
 etcd
+nfs
+lb
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -116,15 +183,46 @@ docker_udev_workaround=True
 openshift_use_dnsmasq=false
 openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
-# osm_use_cockpit=false
+osm_use_cockpit=true
+os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 
 openshift_master_cluster_method=native
-openshift_master_cluster_hostname=$MASTERPUBLICIPHOSTNAME
+openshift_master_cluster_hostname=$BASTION
 openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
-openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
+#openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
 
 # Enable HTPasswdPasswordIdentityProvider
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+
+# Configure persistent storage via nfs server on master
+openshift_hosted_registry_storage_kind=nfs
+openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_registry_storage_nfs_directory=/exports
+openshift_hosted_registry_storage_volume_name=registry
+openshift_hosted_registry_storage_volume_size=5Gi
+
+# Setup metrics
+openshift_hosted_metrics_deploy=true
+# As of this writing, there's a bug in the metrics deployment.
+# You'll see the metrics failing to deploy 59 times, it will, though, succeed the 60'th time.
+openshift_hosted_metrics_storage_kind=nfs
+openshift_hosted_metrics_storage_access_modes=['ReadWriteOnce']
+openshift_hosted_metrics_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_metrics_storage_nfs_directory=/exports
+openshift_hosted_metrics_storage_volume_name=metrics
+openshift_hosted_metrics_storage_volume_size=10Gi
+openshift_hosted_metrics_public_url=https://metrics.$ROUTING/hawkular/metrics
+
+# Setup logging
+openshift_hosted_logging_deploy=true
+openshift_hosted_logging_storage_kind=nfs
+openshift_hosted_logging_storage_access_modes=['ReadWriteOnce']
+openshift_hosted_logging_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_logging_storage_nfs_directory=/exports
+openshift_hosted_logging_storage_volume_name=logging
+openshift_hosted_logging_storage_volume_size=10Gi
+openshift_master_logging_public_url=https://kibana.$ROUTING
 
 # host group for masters
 [masters]
@@ -133,6 +231,12 @@ $MASTER-[0:${MASTERLOOP}].$DOMAIN
 # host group for etcd
 [etcd]
 $MASTER-[0:${MASTERLOOP}].$DOMAIN
+
+[nfs]
+$MASTER-0.$DOMAIN
+
+[lb]
+$BASTION
 
 # host group for nodes
 [nodes]
@@ -167,5 +271,15 @@ sed -i -e "s/# Defaults    requiretty/Defaults    requiretty/" /etc/sudoers
 echo $(date) "- Adding OpenShift user"
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall.yml"
+
+# Assigning cluster admin rights to OpenShift user
+echo $(date) "- Assigning cluster admin rights to user"
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall2.yml"
+
+# Setting password for Cockpit
+echo $(date) "- Assigning password for root, which is used to login to Cockpit"
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall3.yml"
 
 echo $(date) " - Script complete"
