@@ -196,6 +196,7 @@
 		"openshiftLoadBalancerHostname": "[concat(variables('namingInfix'), 'l')]",
 		"newStorageAccountMaster": "[concat(uniqueString(concat(resourceGroup().id, 'msa', '0')), 'msa')]",
 		"newStorageAccountNode": "[concat(uniqueString(concat(resourceGroup().id, 'nsa', '1')), 'nsa')]",
+		"newStorageAccountRegistry": "[concat(uniqueString(concat(resourceGroup().id, 'registry')), 'reg')]",
 		"addressPrefix": "192.168.0.0/16",
 		"masterSubnetPrefix": "192.168.1.0/24",
 		"nodeSubnetPrefix": "192.168.2.0/24",
@@ -231,9 +232,11 @@
 		"singlequote": "'",
 		"sshKeyPath": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
 		"bastionPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/bastionPrep.sh')]",
+		"loadBalancerPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/loadBalancerPrep.sh')]",
 		"nodePrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/nodePrep.sh')]",
 		"masterPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/masterPrep.sh')]",
 		"bastionPrepScriptFileName": "bastionPrep.sh",
+		"loadBalancerPrepScriptFileName": "loadBalancerPrep.sh",
 		"nodePrepScriptFileName": "nodePrep.sh",
 		"masterPrepScriptFileName": "masterPrep.sh",
 		"openshiftDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/openshiftdeploy.json')]",
@@ -655,7 +658,7 @@
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionStorage')]",
 			"tags": {
-				"displayName": "StorageAccounts"
+				"displayName": "MasterStorageAccount"
 			},
 			"properties": {
 				"accountType": "[variables('vmSizesMap')[parameters('masterVmSize')].storageAccountType]"
@@ -666,10 +669,21 @@
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionStorage')]",
 			"tags": {
-				"displayName": "StorageAccounts"
+				"displayName": "NodeStorageAccount"
 			},
 			"properties": {
 				"accountType": "[variables('vmSizesMap')[parameters('nodeVmSize')].storageAccountType]"
+			}
+		}, {
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[variables('newStorageAccountRegistry')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionStorage')]",
+			"tags": {
+				"displayName": "RegistryStorageAccount"
+			},
+			"properties": {
+				"accountType": "Standard_LRS"
 			}
 		}, {
 			"type": "Microsoft.Network/publicIPAddresses",
@@ -1134,6 +1148,52 @@
 			}
 		}, {
 			"type": "Microsoft.Compute/virtualMachines",
+			"name": "[variables('openshiftLoadBalancerHostname')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionCompute')]",
+			"tags": {
+				"displayName": "OpenShiftLoadBalancerVirtualMachine"
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
+				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftLoadBalancerHostname'), 'nic')]"
+			],
+			"properties": {
+				"hardwareProfile": {
+					"vmSize": "[parameters('masterVmSize')]"
+				},
+				"osProfile": {
+					"computerName": "[variables('openshiftLoadBalancerHostname')]",
+					"adminUsername": "[parameters('adminUsername')]",
+					"linuxConfiguration": {
+						"disablePasswordAuthentication": true,
+						"ssh": {
+							"publicKeys": [{
+								"path": "[variables('sshKeyPath')]",
+								"keyData": "[parameters('sshPublicKey')]"
+							}]
+						}
+					}
+				},
+				"storageProfile": {
+					"imageReference": "[variables('imageReference')]",
+					"osDisk": {
+						"name": "[concat(variables('openshiftLoadBalancerHostname'), 'osdisk')]",
+						"vhd": {
+							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftLoadBalancerHostname'), '.vhd')]"
+						},
+						"caching": "ReadWrite",
+						"createOption": "FromImage"
+					}
+				},
+				"networkProfile": {
+					"networkInterfaces": [{
+						"id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('openshiftLoadBalancerHostname'), 'nic'))]"
+					}]
+				}
+			}
+		}, {
+			"type": "Microsoft.Compute/virtualMachines",
 			"name": "[concat(variables('openshiftMasterHostname'), '-', copyIndex())]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionCompute')]",
@@ -1341,6 +1401,31 @@
 				},
 				"protectedSettings": {
 					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' ', variables('singlequote'), parameters('cloudAccessPassword'), variables('singlequote'), ' ', parameters('cloudAccessPoolId'))]"
+				}
+			}
+		}, {
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"name": "[concat(variables('openshiftLoadBalancerHostname'), '/prepNodes')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionCompute')]",
+			"tags": {
+				"displayName": "PrepLoadBalancer"
+			},
+			"dependsOn": [
+				"[concat('Microsoft.Compute/virtualMachines/', variables('openshiftLoadBalancerHostname'))]"
+			],
+			"properties": {
+				"publisher": "Microsoft.Azure.Extensions",
+				"type": "CustomScript",
+				"typeHandlerVersion": "2.0",
+				"autoUpgradeMinorVersion": true,
+				"settings": {
+					"fileUris": [
+						"[variables('loadBalancerPrepScriptUrl')]"
+					]
+				},
+				"protectedSettings": {
+					"commandToExecute": "[concat('bash ', variables('loadBalancerPrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' ', variables('singlequote'), parameters('cloudAccessPassword'), variables('singlequote'), ' ', parameters('cloudAccessPoolId'))]"
 				}
 			}
 		}, {
