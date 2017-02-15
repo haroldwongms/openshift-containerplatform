@@ -119,18 +119,18 @@ openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
 # Configure persistent storage via nfs server on master
-# openshift_hosted_registry_storage_kind=nfs
-# openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-# openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
-# openshift_hosted_registry_storage_nfs_directory=/exports
-# openshift_hosted_registry_storage_volume_name=registry
-# openshift_hosted_registry_storage_volume_size=5Gi
+openshift_hosted_registry_storage_kind=nfs
+openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_registry_storage_nfs_directory=/exports
+openshift_hosted_registry_storage_volume_name=registry
+openshift_hosted_registry_storage_volume_size=5Gi
 
-openshift_hosted_registry_storage_kind=azure
-openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
-openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
-openshift_hosted_registry_storage_azure_container=registry
-#openshift_hosted_registry_storage_azure_realm=
+# openshift_hosted_registry_storage_kind=azure
+# openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
+# openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
+# openshift_hosted_registry_storage_azure_container=registry
+# #openshift_hosted_registry_storage_azure_realm=
 
 # Setup metrics
 openshift_hosted_metrics_deploy=true
@@ -201,17 +201,18 @@ openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
 # Configure persistent storage via nfs server on master
-# openshift_hosted_registry_storage_kind=nfs
-# openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-# openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
-# openshift_hosted_registry_storage_nfs_directory=/exports
-# openshift_hosted_registry_storage_volume_name=registry
-# openshift_hosted_registry_storage_volume_size=5Gi
-openshift_hosted_registry_storage_kind=azure
-openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
-openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
-openshift_hosted_registry_storage_azure_container=registry
-#openshift_hosted_registry_storage_azure_realm=
+openshift_hosted_registry_storage_kind=nfs
+openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_registry_storage_nfs_directory=/exports
+openshift_hosted_registry_storage_volume_name=registry
+openshift_hosted_registry_storage_volume_size=5Gi
+
+# openshift_hosted_registry_storage_kind=azure
+# openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
+# openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
+# openshift_hosted_registry_storage_azure_container=registry
+# openshift_hosted_registry_storage_azure_realm=
 
 # Setup metrics
 openshift_hosted_metrics_deploy=true
