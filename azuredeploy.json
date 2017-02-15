@@ -195,7 +195,8 @@
 		"openshiftInfraHostname": "[concat(variables('namingInfix'), 'i')]",
 		"openshiftLoadBalancerHostname": "[concat(variables('namingInfix'), 'l')]",
 		"newStorageAccountMaster": "[concat(uniqueString(concat(resourceGroup().id, 'msa', '0')), 'msa')]",
-		"newStorageAccountNode": "[concat(uniqueString(concat(resourceGroup().id, 'nsa', '1')), 'nsa')]",
+		"newStorageAccountNodeOs": "[concat(uniqueString(concat(resourceGroup().id, 'nossa', '1')), 'nsao')]",
+		"newStorageAccountNodeData": "[concat(uniqueString(concat(resourceGroup().id, 'ndatasa', '2')), 'nsad')]",
 		"newStorageAccountRegistry": "[concat(uniqueString(concat(resourceGroup().id, 'registry')), 'reg')]",
 		"addressPrefix": "192.168.0.0/16",
 		"masterSubnetPrefix": "192.168.1.0/24",
@@ -665,7 +666,18 @@
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
-			"name": "[variables('newStorageAccountNode')]",
+			"name": "[variables('newStorageAccountNodeOS')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionStorage')]",
+			"tags": {
+				"displayName": "NodeStorageAccount"
+			},
+			"properties": {
+				"accountType": "[variables('vmSizesMap')[parameters('nodeVmSize')].storageAccountType]"
+			}
+		}, {
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[variables('newStorageAccountNodeData')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionStorage')]",
 			"tags": {
@@ -1325,7 +1337,8 @@
 				"displayName": "OpenShiftNodes"
 			},
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountNode'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountNodeOS'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountNodeData'))]",
 				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftNodeHostname'), copyIndex(), 'nic')]"
 			],
 			"copy": {
@@ -1357,7 +1370,7 @@
 					"osDisk": {
 						"name": "[concat(variables('openshiftNodeHostname'), copyIndex(), 'osdisk')]",
 						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountNode')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftNodeHostname'), copyIndex(), '.vhd')]"
+							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountNodeOS')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftNodeHostname'), copyIndex(), '.vhd')]"
 						},
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
@@ -1367,7 +1380,7 @@
 						"diskSizeGB": "[parameters('dataDiskSize')]",
 						"lun": 0,
 						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountNode')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftNodeHostname'), copyIndex(), '-docker-pool.vhd')]"
+							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountNodeData')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftNodeHostname'), copyIndex(), '-docker-pool.vhd')]"
 						},
 						"createOption": "Empty"
 					}]
