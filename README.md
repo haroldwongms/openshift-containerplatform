@@ -8,25 +8,27 @@ This template deploys OpenShift Container Platform with basic username / passwor
 |Master Load Balancer	|2 probes and 2 rules for TCP 8443 and TCP 9090 <br/> NAT rules for SSH on Ports 2200-220X                                           |
 |Infra Load Balancer	|3 probes and 3 rules for TCP 80, TCP 443 and TCP 9090 									                                             |
 |Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
-|Storage Accounts   	|2 Storage Accounts                                                                                                                  |
-|Virtual Machines   	|1 Bastion Node - Used both to Run Ansible Playbook for OpenShift deployment and to do internal load balancing to the masters<br />1 or 3 Masters. Master 1 is used to run a NFS server to provide persistent storage.<br />1 or 3 Infra nodes<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
+|Storage Accounts   	|1 Storage Account for Master, Infra, Bastion and Load Balancer VMs<br />2 Storage Accounts for Node VMs<br />1 Storage Account for Private Docker Registry                                                                                                                |
+|Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1 Load Balancer Node to do internal load balancing to the masters<br />1 or 3 Masters. First Master is used to run a NFS server to provide persistent storage.<br />1 or 3 Infra nodes<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
 ## READ the instructions in its entirety before deploying!
 
 This template deploys multiple VMs and requires some pre-work before you can successfully deploy the OpenShift Cluster.  If you don't get the pre-work done correctly, you will most likely fail to deploy the cluster using this template.  Please read the instructions completely before you proceed. 
 
 This template uses the On-Demand Red Hat Enterprise Linux image from the Azure Gallery.  This means there is an hourly charge for using this image.  At the same time, the instance will be registered to your Red Hat subscription so you will also be using one of your entitlements.  For this reason, this template is good for setting up temporary POCs or learning environments but not meant for production due to the "double billing".
 
+After successful deployment, the Bastion Node is no longer required.  You can turn it off and delete it or keep it around for running future playbooks.
+
 ## Prerequisites
 
 ### Generate SSH Keys
 
-You'll need to generate an SSH key pair (Public / Private) in order to provision this template. Ensure that you do NOT include a passcode with the private key. <br/><br/>
+You'll need to generate an SSH key pair (Public / Private) in order to provision this template. Ensure that you do NOT include a passphrase with the private key. <br/><br/>
 If you are using a Windows computer, you can download puttygen.exe.  You will need to export to OpenSSH (from Conversions menu) to get a valid Private Key for use in the Template.<br/><br/>
-From a Linux or Mac, you can just use the ssh-keygen command.
+From a Linux or Mac, you can just use the ssh-keygen command.  Once you are finished deploying the cluster, you can always generate new keys that uses a passphrase and replace the original ones used during inital deployment.
 
 ### Create Key Vault to store SSH Private Key
 
-You will need to create a Key Vault to store your SSH Private Key that will then be used as part of the deployment.  I recommend creating a Resource Group specifically to store the KeyVault.  This way, you can reuse the KeyVault for other deployments and you won't have to create this every time you chose to deploy another OpenShift cluster.
+You will need to create a Key Vault to store your SSH Private Key that will then be used as part of the deployment.  This extra work is to provide security around the Private Key - especially since it does not have a passphrase.  I recommend creating a Resource Group specifically to store the KeyVault.  This way, you can reuse the KeyVault for other deployments and you won't have to create this every time you chose to deploy another OpenShift cluster.
 
 1. Create KeyVault using Powershell <br/>
   a.  Create new resource group: New-AzureRMResourceGroup -Name 'ResourceGroupName' -Location 'West US'<br/>
@@ -88,7 +90,8 @@ Once you have collected all of the prerequisites for the template, you can deplo
 
 The OpenShift Ansible playbook does take a while to run when using VMs backed by Standard Storage. VMs backed by Premium Storage are faster. If you want Premium Storage, select a DS or GS series VM.
 <hr />
-Be sure to follow the OpenShift instructions to create the necessary DNS entry for the OpenShift Router for access to applications.
+Be sure to follow the OpenShift instructions to create the necessary DNS entry for the OpenShift Router for access to applications. <br />
+Currently there is a hickup in the deployment of metrics and logging that will cause the deployment to take a little longer than normal.  When you look at the stdout files on the Bastion host, you will see that the installation had numerous retries for certain playbook tasks.  This is normal.
 
 ### TROUBLESHOOTING
 

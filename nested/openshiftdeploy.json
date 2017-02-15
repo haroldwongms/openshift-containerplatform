@@ -14,6 +14,20 @@
 				"description": "API version for compute resources"
 			}
 		},
+		"newStorageAccountRegistry": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Storage Account for Docker Registry"
+			}
+		},
+		"newStorageAccountKey": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Storage Account Key for Docker Registry"
+			}
+		},
 		"openshiftBastionHostname": {
 			"type": "string",
 			"minLength": 1,
@@ -54,6 +68,13 @@
 			"minLength": 1,
 			"metadata": {
 				"description": "OpenShift Node hostname"
+			}
+		},
+		"openshiftLoadBalancerHostname": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Load Balancer hostname"
 			}
 		},
 		"masterInstanceCount": {
@@ -134,7 +155,7 @@
 				]
 			},
 			"protectedSettings": {
-				"commandToExecute": "[concat('bash ', variables('openshiftDeploymentScriptFileName'), ' \"', parameters('adminUsername'), '\" ', variables('singlequote'), parameters('openshiftPassword'), variables('singlequote'), ' \"', parameters('sshPrivateKey'), '\" \"', parameters('openshiftMasterHostname'), '\" \"', parameters('openshiftMasterPublicIpFqdn'), '\" \"', parameters('openshiftMasterPublicIpAddress'), '\" \"', parameters('openshiftInfraHostname'), '\" \"', parameters('openshiftNodeHostname'), '\" \"', parameters('nodeInstanceCount'), '\" \"', parameters('MasterInstanceCount'), '\" \"', parameters(parameters('subDomainChosen')), '\"')]"
+				"commandToExecute": "[concat('bash ', variables('openshiftDeploymentScriptFileName'), ' \"', parameters('adminUsername'), '\" ', variables('singlequote'), parameters('openshiftPassword'), variables('singlequote'), ' \"', parameters('sshPrivateKey'), '\" \"', parameters('openshiftMasterHostname'), '\" \"', parameters('openshiftMasterPublicIpFqdn'), '\" \"', parameters('openshiftMasterPublicIpAddress'), '\" \"', parameters('openshiftInfraHostname'), '\" \"', parameters('openshiftNodeHostname'), '\" \"', parameters('openshiftLoadBalancerHostname'), '\" \"', parameters('nodeInstanceCount'), '\" \"', parameters('MasterInstanceCount'), '\" \"', parameters(parameters('subDomainChosen')), '\" \"', parameters('newStorageAccountRegistry'), '\" ', variables('singlequote'), parameters('newStorageAccountKey'), variables('singlequote'))]"
 			}
 		}
 	}],
