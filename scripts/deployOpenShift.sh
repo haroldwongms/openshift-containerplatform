@@ -16,6 +16,8 @@ LB=$9
 NODECOUNT=${10}
 MASTERCOUNT=${11}
 ROUTING=${12}
+REGISTRYSA=${13}
+ACCOUNTKEY=${14}
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
@@ -85,6 +87,21 @@ cat > /home/${SUDOUSER}/postinstall3.yml <<EOF
     shell: echo "${PASSWORD}"|passwd root --stdin
 EOF
 
+# Run on MASTER-0 node - configure registry to use Azure Storage
+cat > /home/${SUDOUSER}/postinstall4.yml <<EOF
+---
+- hosts: nfs
+  remote_user: ${SUDOUSER}
+  become: yes
+  become_method: sudo
+  vars:
+    description: "Set registry to use Azure Storage"
+  tasks:
+  - name: Configure docker-registry to use Azure Storage
+    shell: oc env dc docker-registry -e REGISTRY_STORAGE=azure -e REGISTRY_STORAGE_AZURE_ACCOUNTNAME=$REGISTRYSA -e REGISTRY_STORAGE_AZURE_ACCOUNTKEY=$ACCOUNTKEY -e REGISTRY_STORAGE_AZURE_CONTAINER=registry
+EOF
+
+
 # Create Ansible Hosts File
 echo $(date) " - Create Ansible Hosts file"
 
@@ -119,12 +136,12 @@ openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
 # Configure persistent storage via nfs server on master
-openshift_hosted_registry_storage_kind=nfs
-openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
-openshift_hosted_registry_storage_nfs_directory=/exports
-openshift_hosted_registry_storage_volume_name=registry
-openshift_hosted_registry_storage_volume_size=5Gi
+# openshift_hosted_registry_storage_kind=nfs
+# openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+# openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
+# openshift_hosted_registry_storage_nfs_directory=/exports
+# openshift_hosted_registry_storage_volume_name=registry
+# openshift_hosted_registry_storage_volume_size=5Gi
 
 # openshift_hosted_registry_storage_kind=azure
 # openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
@@ -201,12 +218,12 @@ openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
 # Configure persistent storage via nfs server on master
-openshift_hosted_registry_storage_kind=nfs
-openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
-openshift_hosted_registry_storage_nfs_directory=/exports
-openshift_hosted_registry_storage_volume_name=registry
-openshift_hosted_registry_storage_volume_size=5Gi
+# openshift_hosted_registry_storage_kind=nfs
+# openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+# openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
+# openshift_hosted_registry_storage_nfs_directory=/exports
+# openshift_hosted_registry_storage_volume_name=registry
+# openshift_hosted_registry_storage_volume_size=5Gi
 
 # openshift_hosted_registry_storage_kind=azure
 # openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
@@ -293,5 +310,10 @@ runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall2.yml"
 echo $(date) "- Assigning password for root, which is used to login to Cockpit"
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall3.yml"
+
+# Configure Docker Registry to use Azure Storage Account
+echo $(date) "- Configuring Docker Registry to use Azure Storage Account"
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall4.yml"
 
 echo $(date) " - Script complete"
