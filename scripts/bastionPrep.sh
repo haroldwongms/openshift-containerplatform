@@ -1,19 +1,19 @@
 #!/bin/bash
 echo $(date) " - Starting Script"
 
-USER=$1
-PASSWORD="$2"
+ORG=$1
+ACT_KEY="$2"
 POOL_ID=$3
 
 # Register Host with Cloud Access Subscription
 echo $(date) " - Register host with Cloud Access Subscription"
 
-subscription-manager register --username="$USER" --password="$PASSWORD"
+subscription-manager register --org="$ORG" --activationkey="$ACT_KEY"
 if [ $? -eq 0 ]
 then
    echo "Subscribed successfully"
 else
-   echo "Incorrect Username and / or Password specified"
+   echo "Incorrect Organization ID and / or Activation Key specified"
    exit 3
 fi
 
