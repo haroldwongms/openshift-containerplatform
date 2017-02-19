@@ -49,7 +49,9 @@ You will need to create a Key Vault to store your SSH Private Key that will then
 
 ### Red Hat Subscription Access
 
-If you don't already have a user account to access your company's Red Hat user portal, please contact your administrator.  You will need to ensure your Red Hat subscription credentials are in working order by logging into https://access.redhat.com.<br/>
+For security reasons, the method for registering the RHEL system has been changed to use Organization ID and Activation Key versus username and password.
+
+You can determine your Organization ID by running ```subscription-manager identity``` on a registered machine.  To create or find your Activation Key, please go here: https://access.redhat.com/management/activation_keys.
 
 You will also need to get the Pool ID that contains your entitlements for OpenShift.  You can retrieve this from the Red Hat portal by examining the details of the subscription that has the OpenShift entitlements.  Or you can contact your Red Hat administrator to help you.
 
