@@ -66,9 +66,9 @@ You will also need to get the Pool ID that contains your entitlements for OpenSh
 9.  dataDiskSize: Size of data disk to attach to nodes for Docker volume - valid sizes are 128 GB, 512 GB and 1023 GB
 10. adminUsername: Admin username for both OS (VM) login and initial OpenShift user
 11. openshiftPassword: Password for OpenShift user
-12. cloudAccessUsername: Your Red Hat Cloud Access subscription user name
-13. cloudAccessPassword: The password for your Red Hat Cloud Access subscription
-14. cloudAccessPoolId: The Pool ID that contains your OpenShift entitlements
+12. rhsmOrgId: The Red Hat Subscription Manager Organization ID for your Cloud Access subscription. You can get this by running ```subscription-manager identity``` on a registered machine.
+13. rhsmActivationKey: The Red Hat Subscription Manager Activation Key for your Cloud Access subscription. You can get this from [here](https://access.redhat.com/management/activation_keys).
+14. rhsmPoolId: The Red Hat Subscription Manager Pool ID that contains your OpenShift entitlements
 15. sshPublicKey: Copy your SSH Public Key here
 16. keyVaultResourceGroup: The name of the Resource Group that contains the Key Vault
 17. keyVaultName: The name of the Key Vault you created

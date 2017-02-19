@@ -115,25 +115,25 @@
 				"description": "Password for OpenShift user to login to OpenShift Console"
 			}
 		},
-		"cloudAccessUsername": {
-			"type": "string",
-			"minLength": 1,
-			"metadata": {
-				"description": "Red Hat Cloud Access Username (login credentials for access.redhat.com)"
-			}
-		},
-		"cloudAccessPassword": {
+		"rhsmOrgId": {
 			"type": "securestring",
 			"minLength": 1,
 			"metadata": {
-				"description": "Cloud Access password (login credentials for access.redhat.com)"
+				"description": "Red Hat Subscription Manager Organization ID. To find it, run on registered server: subscription-manager identity"
 			}
 		},
-		"cloudAccessPoolId": {
+		"rhsmActivationKey": {
+			"type": "securestring",
+			"minLength": 1,
+			"metadata": {
+				"description": "Red Hat Subscription Manager Activation Key. To find it, go to: https://access.redhat.com/management/activation_keys"
+			}
+		},
+		"rhsmPoolId": {
 			"type": "string",
 			"minLength": 1,
 			"metadata": {
-				"description": "Pool ID with OpenShift entitlements (To find it, run on registered server: subscription-manager list)"
+				"description": "Red Hat Subscription Manager Pool ID with OpenShift entitlements. To find it, run on registered server: subscription-manager list"
 			}
 		},
 		"sshPublicKey": {
@@ -1413,7 +1413,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' ', variables('singlequote'), parameters('cloudAccessPassword'), variables('singlequote'), ' ', parameters('cloudAccessPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
@@ -1438,7 +1438,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('loadBalancerPrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' ', variables('singlequote'), parameters('cloudAccessPassword'), variables('singlequote'), ' ', parameters('cloudAccessPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('loadBalancerPrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
@@ -1467,7 +1467,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('masterPrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' ', variables('singlequote'), parameters('cloudAccessPassword'), variables('singlequote'), ' ', parameters('cloudAccessPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('masterPrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
@@ -1496,7 +1496,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' ', variables('singlequote'), parameters('cloudAccessPassword'), variables('singlequote'), ' ', parameters('cloudAccessPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
@@ -1525,7 +1525,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('cloudAccessUsername'), ' ', variables('singlequote'), parameters('cloudAccessPassword'), variables('singlequote'), ' ', parameters('cloudAccessPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {

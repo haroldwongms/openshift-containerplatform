@@ -35,13 +35,13 @@
 		"openshiftPassword": {
 			"value": "changeme"
 		},
-		"cloudAccessUsername": {
+		"rhsmOrgId": {
 			"value": "changeme"
 		},
-		"cloudAccessPassword": {
+		"rhsmActivationKey": {
 			"value": "changeme"
 		},
-		"cloudAccessPoolId": {
+		"rhsmPoolId": {
 			"value": "changeme"
 		},
 		"sshPublicKey": {
