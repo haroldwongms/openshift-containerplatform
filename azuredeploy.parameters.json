@@ -8,10 +8,10 @@
 		"customVhdOrGallery": {
 			"value": "gallery"
 		},
-		"customOsDiskName": {
+		"customStorageAccount": {
 			"value": "changeme"
 		},
-		"customStorageAccount": {
+		"customOsDiskName": {
 			"value": "changeme"
 		},
 		"masterVmSize": {
@@ -50,10 +50,13 @@
 		"openshiftPassword": {
 			"value": "changeme"
 		},
-		"rhsmOrgId": {
+		"rhsmUsernamePasswordOrActivationKey": {
+			"value": "password"
+		},
+		"rhsmUsernameOrOrgId": {
 			"value": "changeme"
 		},
-		"rhsmActivationKey": {
+		"rhsmPasswordOrActivationKey": {
 			"value": "changeme"
 		},
 		"rhsmPoolId": {
