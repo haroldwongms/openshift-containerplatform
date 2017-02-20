@@ -14,7 +14,8 @@ This template deploys OpenShift Container Platform with basic username / passwor
 
 This template deploys multiple VMs and requires some pre-work before you can successfully deploy the OpenShift Cluster.  If you don't get the pre-work done correctly, you will most likely fail to deploy the cluster using this template.  Please read the instructions completely before you proceed. 
 
-This template uses the On-Demand Red Hat Enterprise Linux image from the Azure Gallery.  This means there is an hourly charge for using this image.  At the same time, the instance will be registered to your Red Hat subscription so you will also be using one of your entitlements.  For this reason, this template is good for setting up temporary POCs or learning environments but not meant for production due to the "double billing".
+This template allows you to choose between a custom VHD image in an existing Storage Account or the On-Demand Red Hat Enterprise Linux image from the Azure Gallery. 
+>If you use the On-Demand image, there is an hourly charge for using this image.  At the same time, the instance will be registered to your Red Hat subscription so you will also be using one of your entitlements. This will lead to "double billing".
 
 After successful deployment, the Bastion Node is no longer required.  You can turn it off and delete it or keep it around for running future playbooks.
 
@@ -37,7 +38,7 @@ You will need to create a Key Vault to store your SSH Private Key that will then
   d.  Create Secret: `Set-AzureKeyVaultSecret -Name 'SecretName' -SecretValue $securesecret -VaultName 'KeyVaultName'`<br/>
   e.  Enable for Template Deployment: `Set-AzureRMKeyVaultAccessPolicy -VaultName 'KeyVaultName' -ResourceGroupName 'ResourceGroupName' -EnabledForTemplateDeployment`<br/>
 
-2. Create Key Vault using Azure CLI<br/>
+2. **Create Key Vault using Azure CLI**<br/>
   a.  Create new Resource Group: azure group create \<name\> \<location\> <br/>
          Ex: `azure group create ResourceGroupName 'East US'` <br/>
   b.  Create Key Vault: azure keyvault create -u \<vault-name\> -g \<resource-group\> -l \<location\><br/>
@@ -111,7 +112,7 @@ If you encounter an error during deployment of the cluster, please view the depl
 3. Exit Code 5: Unable to provision Docker Thin Pool Volume
 4. Exit Code 6: Unable to mount filesystem on Master zero node for NFS 
 
-For further troubleshooting, please SSH into your Bastion node on port 22.  You will need to be root (sudo su -) and then navigate to the following directory: /var/lib/waagent/custom-script/download<br/><br/>
+For further troubleshooting, please SSH into your Bastion node on port 22.  You will need to be root (sudo su -) and then navigate to the following directory: **/var/lib/waagent/custom-script/download**<br/><br/>
 You should see a folder named '0' and '1'.  In each of these folders, you will see two files, stderr and stdout.  You can look through these files to determine where the failure occurred.
 
 ## Post-Deployment Operations
