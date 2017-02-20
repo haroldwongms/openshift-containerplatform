@@ -25,7 +25,6 @@
 		},
 		"dataDiskSize": {
 			"type": "int",
-			"minLength": 1,
 			"metadata": {
 				"description": "Size of Data Disk"
 			}
