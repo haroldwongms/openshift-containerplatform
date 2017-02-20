@@ -13,7 +13,7 @@ if [[ $SELECT == "usernamepassword" ]]
 then
    subscription-manager register --username="$USERNAME_ORG" --password="$PASSWORD_ACT_KEY"
 else
-   subscription-manager register --org="$ORG" --activationkey="$ACT_KEY"
+   subscription-manager register --org="$USERNAME_ORG" --activationkey="$PASSWORD_ACT_KEY"
 fi
 
 if [ $? -eq 0 ]
