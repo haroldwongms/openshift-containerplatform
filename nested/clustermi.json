@@ -103,7 +103,12 @@
 		"imageReference": "[variables('osType')]",
 		"storageProfileChosen": "[concat(parameters('customVhdOrGallery'), 'StorageProfile')]",
 		"galleryStorageProfile": {
-			"imageReference": "[variables('imageReference')]",
+			"imageReference": {
+				"publisher": "RedHat",
+				"offer": "RHEL",
+				"sku": "7.3",
+				"version": "latest"
+			},
 			"osDisk": {
 				"name": "[concat(parameters('hostname'), 'osdisk')]",
 				"vhd": {
