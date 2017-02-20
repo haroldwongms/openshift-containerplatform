@@ -123,7 +123,7 @@
 			},
 			"networkProfile": {
 				"networkInterfaces": [{
-					"id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostname'), 'nic'))]"
+					"id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostname'), '-nic'))]"
 				}]
 			}
 		}
