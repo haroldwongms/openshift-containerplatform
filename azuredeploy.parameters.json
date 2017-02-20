@@ -5,10 +5,22 @@
 		"_artifactsLocation": {
 			"value": "https://raw.githubusercontent.com/haroldwongms/openshift-containerplatform/master/"
 		},
+		"customVhdOrGallery": {
+			"value": "gallery"
+		},
+		"customStorageAccount": {
+			"value": "changeme"
+		},
+		"customOsDiskName": {
+			"value": "changeme"
+		},
 		"masterVmSize": {
 			"value": "Standard_DS2_v2"
 		},
 		"nodeVmSize": {
+			"value": "Standard_DS2_v2"
+		},
+		"infraVmSize": {
 			"value": "Standard_DS2_v2"
 		},
 		"openshiftClusterPrefix": {
@@ -26,8 +38,11 @@
 		"nodeInstanceCount": {
 			"value": 1
 		},
+		"infraInstanceCount": {
+			"value": 1
+		},
 		"dataDiskSize": {
-			"value": 50
+			"value": 128
 		},
 		"adminUsername": {
 			"value": "changeme"
@@ -35,10 +50,13 @@
 		"openshiftPassword": {
 			"value": "changeme"
 		},
-		"rhsmOrgId": {
+		"rhsmUsernamePasswordOrActivationKey": {
+			"value": "password"
+		},
+		"rhsmUsernameOrOrgId": {
 			"value": "changeme"
 		},
-		"rhsmActivationKey": {
+		"rhsmPasswordOrActivationKey": {
 			"value": "changeme"
 		},
 		"rhsmPoolId": {
