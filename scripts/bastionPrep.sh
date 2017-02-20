@@ -17,13 +17,20 @@ else
    exit 3
 fi
 
-subscription-manager attach --pool=$POOL_ID
+subscription-manager attach --pool=$POOL_ID > attach.log
 if [ $? -eq 0 ]
 then
    echo "Pool attached successfully"
 else
-   echo "Incorrect Pool ID or no entitlements available"
-   exit 4
+   evaluate=$( cut -f 2-5 -d ' ' attach.log )
+   if [[ $evaluate == "unit has already had" ]]
+      then
+	     echo "Pool was already attached and was not attached again."
+		 exit 0
+	  else
+         echo "Incorrect Pool ID or no entitlements available"
+         exit 4
+   fi
 fi
 
 # Disable all repositories and enable only the required ones

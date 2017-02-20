@@ -17,22 +17,22 @@
 				"custom", "gallery"
 			],
 			"metadata": {
-				"description": "Custom VHD Image or RHEL Gallery Image",
-			}
-		},
-		"customOsDiskName": {
-			"type": "string",
-			"defaultValue": "https://osdiskstorageaccount.blob.core.windows.net/"
-			"metadata": {
-				"description": "Storage account that contains the custom OS Disk.  This is the full URL of the Storage Account. Include the ending /",
+				"description": "Custom VHD Image or RHEL Gallery Image"
 			}
 		},
 		"customStorageAccount": {
 			"type": "string",
+			"defaultValue": "https://osdiskstorageaccount.blob.core.windows.net/",
+			"metadata": {
+				"description": "Storage account that contains the custom OS Disk.  This is the full URL of the Storage Account. Include the ending /"
+			}
+		},
+		"customOsDiskName": {
+			"type": "string",
 			"defaultValue": "images/customosdisk.vhd",
 			"metadata": {
 				"description": "The name of the custom OS Disk and the folder it is located in."
-			},
+			}
 		},
 		"masterVmSize": {
 			"type": "string",
@@ -236,6 +236,7 @@
 	},
 	"variables": {
 		"location": "[resourceGroup().location]",
+		"resourceGroupName": "[resourceGroup().id]",
 		"apiVersionCompute": "2015-06-15",
 		"apiVersionNetwork": "2016-03-30",
 		"apiVersionStorage": "2015-06-15",
@@ -293,8 +294,9 @@
 		"loadBalancerPrepScriptFileName": "loadBalancerPrep.sh",
 		"nodePrepScriptFileName": "nodePrep.sh",
 		"masterPrepScriptFileName": "masterPrep.sh",
-		"clusterMIDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/clustermi.json')]",
-		"clusterNodeDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/clusternode.json')]",
+		"clusterMIDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clustermi.json')]",
+		"clusterNodeDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clusternode.json')]",
+		"basicDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'basic.json')]",
 		"openshiftDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/openshiftdeploy.json')]",
 		"vmSizesMap": {
 			"Standard_A4": {
@@ -1009,7 +1011,7 @@
 			}
 		}, {
 			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftBastionHostname'), 'nic')]",
+			"name": "[concat(variables('openshiftBastionHostname'), '-nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -1038,7 +1040,7 @@
 			}
 		},  {
 			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftLoadBalancerHostname'), 'nic')]",
+			"name": "[concat(variables('openshiftLoadBalancerHostname'), '-nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -1064,7 +1066,7 @@
 			}
 		},{
 			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftMasterHostname'), copyIndex(), 'nic')]",
+			"name": "[concat(variables('openshiftMasterHostname'), '-', copyIndex(), 'nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -1104,7 +1106,7 @@
 			}
 		}, {
 			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftInfraHostname'), copyIndex(), 'nic')]",
+			"name": "[concat(variables('openshiftInfraHostname'), '-', copyIndex(), 'nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -1117,7 +1119,7 @@
 			],
 			"copy": {
 				"name": "infraNicLoop",
-				"count": "[parameters('masterInstanceCount')]"
+				"count": "[parameters('infraInstanceCount')]"
 			},
 			"properties": {
 				"ipConfigurations": [{
@@ -1138,7 +1140,7 @@
 			}
 		}, {
 			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftNodeHostname'), copyIndex(), 'nic')]",
+			"name": "[concat(variables('openshiftNodeHostname'), '-', copyIndex(), 'nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -1167,12 +1169,12 @@
 				}
 			}
 		}, {
-			"name": "Bastion VM Deployment",
+			"name": "bastionVmDeployment",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
-				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftBastionHostname'), 'nic')]"
+				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftBastionHostname'), '-nic')]"
 			],
 			"properties": {
 				"mode": "Incremental",
@@ -1189,9 +1191,6 @@
 					},
 					"sshPublicKey": {
 						"value": "[parameters('sshPublicKey')]"
-					},
-					"dataDiskSize": {
-						"value": "[parameters('dataDiskSize')]"
 					},
 					"adminUsername": {
 						"value": "[parameters('adminUsername')]"
@@ -1203,7 +1202,7 @@
 						"value": "[variables('openshiftBastionHostname')]"
 					},
 					"customImageName": {
-						"value": "[parameters('customImageName')]"
+						"value": "[variables('customImageName')]"
 					},
 					"newStorageAccount": {
 						"value": "[variables('newStorageAccountMaster')]"
@@ -1211,24 +1210,21 @@
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
 					},
-					"imageReference": {
-						"value": "[variables('imageReference')]"
-					},
 					"apiVersionStorage": {
 						"value": "[variables('apiVersionStorage')]"
 					},
-					"customVhdOrGallery": {
-						"value": "[parameters('customVhdOrGallery')]"
+					"apiVersionCompute": {
+						"value": "[variables('apiVersionCompute')]"
 					}
 				}
 			}
 		}, {
-			"name": "Load Balancer VM Deployment",
+			"name": "loadBalancerVmDeployment",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
-				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftLoadBalancerHostname'), 'nic')]"
+				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftLoadBalancerHostname'), '-nic')]"
 			],
 			"properties": {
 				"mode": "Incremental",
@@ -1246,9 +1242,6 @@
 					"sshPublicKey": {
 						"value": "[parameters('sshPublicKey')]"
 					},
-					"dataDiskSize": {
-						"value": "[parameters('dataDiskSize')]"
-					},
 					"adminUsername": {
 						"value": "[parameters('adminUsername')]"
 					},
@@ -1259,7 +1252,7 @@
 						"value": "[variables('openshiftLoadBalancerHostname')]"
 					},
 					"customImageName": {
-						"value": "[parameters('customImageName')]"
+						"value": "[variables('customImageName')]"
 					},
 					"newStorageAccount": {
 						"value": "[variables('newStorageAccountMaster')]"
@@ -1267,19 +1260,16 @@
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
 					},
-					"imageReference": {
-						"value": "[variables('imageReference')]"
-					},
 					"apiVersionStorage": {
 						"value": "[variables('apiVersionStorage')]"
 					},
-					"customVhdOrGallery": {
-						"value": "[parameters('customVhdOrGallery')]"
+					"apiVersionCompute": {
+						"value": "[variables('apiVersionCompute')]"
 					}
 				}
 			}
 		}, {
-			"name": "Master VM Deployment",
+			"name": "[concat('masterVmDeployment', copyindex())]",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
@@ -1323,7 +1313,7 @@
 						"value": "[concat(variables('openshiftMasterHostname'), '-', copyIndex())]"
 					},
 					"customImageName": {
-						"value": "[parameters('customImageName')]"
+						"value": "[variables('customImageName')]"
 					},
 					"newStorageAccount": {
 						"value": "[variables('newStorageAccountMaster')]"
@@ -1331,19 +1321,16 @@
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
 					},
-					"imageReference": {
-						"value": "[variables('imageReference')]"
-					},
 					"apiVersionStorage": {
 						"value": "[variables('apiVersionStorage')]"
 					},
-					"customVhdOrGallery": {
-						"value": "[parameters('customVhdOrGallery')]"
+					"apiVersionCompute": {
+						"value": "[variables('apiVersionCompute')]"
 					}
 				}
 			}
 		}, {
-			"name": "Infra VM Deployment",
+			"name": "[concat('infraVmDeployment', copyindex())]",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
@@ -1387,7 +1374,7 @@
 						"value": "[concat(variables('openshiftInfraHostname'), '-', copyIndex())]"
 					},
 					"customImageName": {
-						"value": "[parameters('customImageName')]"
+						"value": "[variables('customImageName')]"
 					},
 					"newStorageAccount": {
 						"value": "[variables('newStorageAccountMaster')]"
@@ -1395,19 +1382,16 @@
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
 					},
-					"imageReference": {
-						"value": "[variables('imageReference')]"
-					},
 					"apiVersionStorage": {
 						"value": "[variables('apiVersionStorage')]"
 					},
-					"customVhdOrGallery": {
-						"value": "[parameters('customVhdOrGallery')]"
+					"apiVersionCompute": {
+						"value": "[variables('apiVersionCompute')]"
 					}
 				}
 			}
 		}, {
-			"name": "Node VM Deployment",
+			"name": "[concat('nodeVmDeployment', copyindex())]",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
@@ -1452,7 +1436,7 @@
 						"value": "[concat(variables('openshiftNodeHostname'), '-', copyIndex())]"
 					},
 					"customImageName": {
-						"value": "[parameters('customImageName')]"
+						"value": "[variables('customImageName')]"
 					},
 					"newStorageAccountOs": {
 						"value": "[variables('newStorageAccountNodeOs')]"
@@ -1463,14 +1447,11 @@
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
 					},
-					"imageReference": {
-						"value": "[variables('imageReference')]"
-					},
 					"apiVersionStorage": {
 						"value": "[variables('apiVersionStorage')]"
 					},
-					"customVhdOrGallery": {
-						"value": "[parameters('customVhdOrGallery')]"
+					"apiVersionCompute": {
+						"value": "[variables('apiVersionCompute')]"
 					}
 				}
 			}
@@ -1483,7 +1464,7 @@
 				"displayName": "PrepBastion"
 			},
 			"dependsOn": [
-				"[concat('Microsoft.Compute/virtualMachines/', variables('openshiftBastionHostname'))]"
+				"bastionVmDeployment"
 			],
 			"properties": {
 				"publisher": "Microsoft.Azure.Extensions",
@@ -1508,7 +1489,7 @@
 				"displayName": "PrepLoadBalancer"
 			},
 			"dependsOn": [
-				"[concat('Microsoft.Compute/virtualMachines/', variables('openshiftLoadBalancerHostname'))]"
+				"loadBalancerVmDeployment"
 			],
 			"properties": {
 				"publisher": "Microsoft.Azure.Extensions",
@@ -1533,7 +1514,7 @@
 				"displayName": "PrepMaster"
 			},
 			"dependsOn": [
-				"[concat('Microsoft.Compute/virtualMachines/', variables('openshiftMasterHostname'), '-', copyIndex())]"
+				"[concat('masterVmDeployment', copyindex())]"
 			],
 			"copy": {
 				"name": "masterPrepLoop",
@@ -1562,11 +1543,11 @@
 				"displayName": "PrepInfra"
 			},
 			"dependsOn": [
-				"[concat('Microsoft.Compute/virtualMachines/', variables('openshiftInfraHostname'), '-', copyIndex())]"
+				"[concat('infraVmDeployment', copyindex())]"
 			],
 			"copy": {
 				"name": "infraPrepLoop",
-				"count": "[parameters('masterInstanceCount')]"
+				"count": "[parameters('infraInstanceCount')]"
 			},
 			"properties": {
 				"publisher": "Microsoft.Azure.Extensions",
@@ -1591,7 +1572,7 @@
 				"displayName": "PrepNodes"
 			},
 			"dependsOn": [
-				"[concat('Microsoft.Compute/virtualMachines/', variables('openshiftNodeHostname'), '-', copyIndex())]"
+				"[concat('nodeVmDeployment', copyindex())]"
 			],
 			"copy": {
 				"name": "nodePrepLoop",
@@ -1662,6 +1643,9 @@
 					},
 					"masterInstanceCount": {
 						"value": "[parameters('masterInstanceCount')]"
+					},
+					"infraInstanceCount": {
+						"value": "[parameters('infraInstanceCount')]"
 					},
 					"nodeInstanceCount": {
 						"value": "[parameters('nodeInstanceCount')]"
