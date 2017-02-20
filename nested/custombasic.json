@@ -71,54 +71,9 @@
 			"metadata": {
 				"description": "Storage API Version"
 			}
-		},
-		"customVhdOrGallery": {
-			"type": "string",
-			"minLength": 1,
-			"metadata": {
-				"description": "Custom VHD or Gallery Image"
-			}
 		}
 	},
 	"variables": {
-		"osType": {
-			"publisher": "RedHat",
-			"offer": "RHEL",
-			"sku": "7.3",
-			"version": "latest"
-		},
-		"imageReference": "[variables('osType')]",
-		"storageProfileChosen": "[concat(parameters('customVhdOrGallery'), 'StorageProfile')]",
-		"galleryStorageProfile": {
-			"imageReference": {
-				"publisher": "RedHat",
-				"offer": "RHEL",
-				"sku": "7.3",
-				"version": "latest"
-			},
-			"osDisk": {
-				"name": "[concat(parameters('hostname'), 'osdisk')]",
-				"vhd": {
-					"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('newStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), parameters('hostname'), '.vhd')]"
-				},
-				"caching": "ReadWrite",
-				"createOption": "FromImage"
-			}
-		},
-		"customStorageProfile": {
-			"osDisk": {
-				"name": "[concat(parameters('hostname'), 'osdisk')]",
-				"image": {
-					"uri": "[parameters('customImageName')]"
-				},
-				"vhd": {
-					"uri": "[concat(parameters('customStorageAccount'), 'vhds/', parameters('hostname'), '.vhd')]"
-				},
-				"osType": "Linux",
-				"caching": "ReadWrite",
-				"createOption": "FromImage"
-			}
-		}
 	},
 	"resources": [{
 		"type": "Microsoft.Compute/virtualMachines",
@@ -145,7 +100,20 @@
 					}
 				}
 			},
-			"storageProfile": "[variables('storageProfileChosen')]",
+			"storageProfile": {
+				"osDisk": {
+					"name": "[concat(parameters('hostname'), 'osdisk')]",
+					"image": {
+						"uri": "[parameters('customImageName')]"
+					},
+					"vhd": {
+						"uri": "[concat(parameters('customStorageAccount'), 'vhds/', parameters('hostname'), '.vhd')]"
+					},
+					"osType": "Linux",
+					"caching": "ReadWrite",
+					"createOption": "FromImage"
+				}
+			},
 			"networkProfile": {
 				"networkInterfaces": [{
 					"id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('hostname'), 'nic'))]"
