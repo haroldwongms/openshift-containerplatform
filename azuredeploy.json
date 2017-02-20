@@ -121,7 +121,7 @@
 			"type": "int",
 			"defaultValue": 1,
 			"minValue": 1,
-			"allowedValues": [1, 3],
+			"allowedValues": [1, 2, 3],
 			"metadata": {
 				"description": "Number of OpenShift masters.  1 is non HA and 3 is for HA"
 			}
