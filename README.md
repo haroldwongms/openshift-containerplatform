@@ -10,6 +10,9 @@ This template deploys OpenShift Container Platform with basic username / passwor
 |Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
 |Storage Accounts   	|1 Storage Account for Master, Infra, Bastion and Load Balancer VMs<br />2 Storage Accounts for Node VMs<br />1 Storage Account for Private Docker Registry                                                                                                                |
 |Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1 Load Balancer Node to do internal load balancing to the masters<br />1 or 3 Masters. First Master is used to run a NFS server to provide persistent storage.<br />1, 2, or 3 Infra nodes<br />User-defined number of nodes (1 to 30)<br />All VMs include a single attached data disk for Docker thin pool logical volume|
+
+![Cluster Diagram](../images/openshiftdiagram.jpg)
+
 ## READ the instructions in its entirety before deploying!
 
 This template deploys multiple VMs and requires some pre-work before you can successfully deploy the OpenShift Cluster.  If you don't get the pre-work done correctly, you will most likely fail to deploy the cluster using this template.  Please read the instructions completely before you proceed. 
