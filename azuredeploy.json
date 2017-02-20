@@ -10,6 +10,30 @@
 			},
 			"defaultValue": "https://raw.githubusercontent.com/haroldwongms/openshift-containerplatform/master/"
 		},
+		"customVhdOrGallery": {
+			"type": "string",
+			"defaultValue": "gallery",
+			"allowedValues": [
+				"custom", "gallery"
+			],
+			"metadata": {
+				"description": "Custom VHD Image or RHEL Gallery Image",
+			}
+		},
+		"customOsDiskName": {
+			"type": "string",
+			"defaultValue": "https://osdiskstorageaccount.blob.core.windows.net/"
+			"metadata": {
+				"description": "Storage account that contains the custom OS Disk.  This is the full URL of the Storage Account. Include the ending /",
+			}
+		},
+		"customStorageAccount": {
+			"type": "string",
+			"defaultValue": "images/customosdisk.vhd",
+			"metadata": {
+				"description": "The name of the custom OS Disk and the folder it is located in."
+			},
+		},
 		"masterVmSize": {
 			"type": "string",
 			"defaultValue": "Standard_DS2_v2",
@@ -48,6 +72,26 @@
 			],
 			"metadata": {
 				"description": "OpenShift Node VM(s) size"
+			}
+		},
+		"infraVmSize": {
+			"type": "string",
+			"defaultValue": "Standard_DS2_v2",
+			"allowedValues": [
+				"Standard_A4", "Standard_A5", "Standard_A6", "Standard_A7", "Standard_A8", "Standard_A9", "Standard_A10", "Standard_A11",
+				"Standard_D2", "Standard_D3", "Standard_D4",
+				"Standard_D11", "Standard_D12", "Standard_D13", "Standard_D14",
+				"Standard_D2_v2", "Standard_D3_v2", "Standard_D4_v2", "Standard_D5_v2",
+				"Standard_D11_v2", "Standard_D12_v2", "Standard_D13_v2", "Standard_D14_v2",
+				"Standard_G1", "Standard_G2", "Standard_G3", "Standard_G4", "Standard_G5",
+				"Standard_DS2", "Standard_DS3", "Standard_DS4",
+				"Standard_DS11", "Standard_DS12", "Standard_DS13", "Standard_DS14",
+				"Standard_DS2_v2", "Standard_DS3_v2", "Standard_DS4_v2", "Standard_DS5_v2",
+				"Standard_DS11_v2", "Standard_DS12_v2", "Standard_DS13_v2", "Standard_DS14_v2",
+				"Standard_GS1", "Standard_GS2", "Standard_GS3", "Standard_GS4", "Standard_GS5"
+			],
+			"metadata": {
+				"description": "OpenShift Infra Node VM(s) size"
 			}
 		},
 		"openshiftClusterPrefix": {
@@ -89,6 +133,15 @@
 			"allowedValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
 			"metadata": {
 				"description": "Number of OpenShift nodes"
+			}
+		},
+		"infraInstanceCount": {
+			"type": "int",
+			"defaultValue": 1,
+			"minValue": 1,
+			"allowedValues": [1, 2, 3],
+			"metadata": {
+				"description": "Number of OpenShift infra nodes.  1 is non HA.  Choose 2 or 3 for HA"
 			}
 		},
 		"dataDiskSize": {
@@ -176,7 +229,6 @@
 		"defaultSubDomain": {
 			"type": "string",
 			"defaultValue": "contoso.com",
-			"minLength": 1,
 			"metadata": {
 				"description": "Default Subdomain for application routing (Wildcard DNS) - must enter something even if you are using xip.io"
 			}
@@ -231,6 +283,7 @@
 		},
 		"imageReference": "[variables('osType')]",
 		"singlequote": "'",
+		"customImageName": "[concat(parameters('customStorageAccount'), parameters('customOsDiskName'))]",
 		"sshKeyPath": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
 		"bastionPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/bastionPrep.sh')]",
 		"loadBalancerPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/loadBalancerPrep.sh')]",
@@ -240,6 +293,8 @@
 		"loadBalancerPrepScriptFileName": "loadBalancerPrep.sh",
 		"nodePrepScriptFileName": "nodePrep.sh",
 		"masterPrepScriptFileName": "masterPrep.sh",
+		"clusterMIDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/clustermi.json')]",
+		"clusterNodeDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/clusternode.json')]",
 		"openshiftDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/openshiftdeploy.json')]",
 		"vmSizesMap": {
 			"Standard_A4": {
@@ -404,7 +459,6 @@
 		}
 	},
 	"resources": [
-
 		{
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"type": "Microsoft.Network/networkSecurityGroups",
@@ -666,7 +720,7 @@
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
-			"name": "[variables('newStorageAccountNodeOS')]",
+			"name": "[variables('newStorageAccountNodeOs')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionStorage')]",
 			"tags": {
@@ -1113,282 +1167,311 @@
 				}
 			}
 		}, {
-			"type": "Microsoft.Compute/virtualMachines",
-			"name": "[variables('openshiftBastionHostname')]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionCompute')]",
-			"tags": {
-				"displayName": "OpenShiftBastionVirtualMachine"
-			},
+			"name": "Bastion VM Deployment",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
 				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftBastionHostname'), 'nic')]"
 			],
 			"properties": {
-				"hardwareProfile": {
-					"vmSize": "[parameters('masterVmSize')]"
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "[variables('basicDeploymentTemplateUrl')]",
+					"contentVersion": "1.0.0.0"
 				},
-				"osProfile": {
-					"computerName": "[variables('openshiftBastionHostname')]",
-					"adminUsername": "[parameters('adminUsername')]",
-					"linuxConfiguration": {
-						"disablePasswordAuthentication": true,
-						"ssh": {
-							"publicKeys": [{
-								"path": "[variables('sshKeyPath')]",
-								"keyData": "[parameters('sshPublicKey')]"
-							}]
-						}
+				"parameters": {
+					"location": {
+						"value": "[variables('location')]"
+					},
+					"sshKeyPath": {
+						"value": "[variables('sshKeyPath')]"
+					},
+					"sshPublicKey": {
+						"value": "[parameters('sshPublicKey')]"
+					},
+					"dataDiskSize": {
+						"value": "[parameters('dataDiskSize')]"
+					},
+					"adminUsername": {
+						"value": "[parameters('adminUsername')]"
+					},
+					"vmSize": {
+						"value": "[parameters('masterVmSize')]"
+					},
+					"hostname": {
+						"value": "[variables('openshiftBastionHostname')]"
+					},
+					"customImageName": {
+						"value": "[parameters('customImageName')]"
+					},
+					"newStorageAccount": {
+						"value": "[variables('newStorageAccountMaster')]"
+					},
+					"customStorageAccount": {
+						"value": "[parameters('customStorageAccount')]"
+					},
+					"imageReference": {
+						"value": "[variables('imageReference')]"
+					},
+					"apiVersionStorage": {
+						"value": "[variables('apiVersionStorage')]"
+					},
+					"customVhdOrGallery": {
+						"value": "[parameters('customVhdOrGallery')]"
 					}
-				},
-				"storageProfile": {
-					"imageReference": "[variables('imageReference')]",
-					"osDisk": {
-						"name": "[concat(variables('openshiftBastionHostname'), 'osdisk')]",
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftBastionHostname'), '.vhd')]"
-						},
-						"caching": "ReadWrite",
-						"createOption": "FromImage"
-					}
-				},
-				"networkProfile": {
-					"networkInterfaces": [{
-						"id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('openshiftBastionHostname'), 'nic'))]"
-					}]
 				}
 			}
 		}, {
-			"type": "Microsoft.Compute/virtualMachines",
-			"name": "[variables('openshiftLoadBalancerHostname')]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionCompute')]",
-			"tags": {
-				"displayName": "OpenShiftLoadBalancerVirtualMachine"
-			},
+			"name": "Load Balancer VM Deployment",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
 				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftLoadBalancerHostname'), 'nic')]"
 			],
 			"properties": {
-				"hardwareProfile": {
-					"vmSize": "[parameters('masterVmSize')]"
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "[variables('basicDeploymentTemplateUrl')]",
+					"contentVersion": "1.0.0.0"
 				},
-				"osProfile": {
-					"computerName": "[variables('openshiftLoadBalancerHostname')]",
-					"adminUsername": "[parameters('adminUsername')]",
-					"linuxConfiguration": {
-						"disablePasswordAuthentication": true,
-						"ssh": {
-							"publicKeys": [{
-								"path": "[variables('sshKeyPath')]",
-								"keyData": "[parameters('sshPublicKey')]"
-							}]
-						}
+				"parameters": {
+					"location": {
+						"value": "[variables('location')]"
+					},
+					"sshKeyPath": {
+						"value": "[variables('sshKeyPath')]"
+					},
+					"sshPublicKey": {
+						"value": "[parameters('sshPublicKey')]"
+					},
+					"dataDiskSize": {
+						"value": "[parameters('dataDiskSize')]"
+					},
+					"adminUsername": {
+						"value": "[parameters('adminUsername')]"
+					},
+					"vmSize": {
+						"value": "[parameters('masterVmSize')]"
+					},
+					"hostname": {
+						"value": "[variables('openshiftLoadBalancerHostname')]"
+					},
+					"customImageName": {
+						"value": "[parameters('customImageName')]"
+					},
+					"newStorageAccount": {
+						"value": "[variables('newStorageAccountMaster')]"
+					},
+					"customStorageAccount": {
+						"value": "[parameters('customStorageAccount')]"
+					},
+					"imageReference": {
+						"value": "[variables('imageReference')]"
+					},
+					"apiVersionStorage": {
+						"value": "[variables('apiVersionStorage')]"
+					},
+					"customVhdOrGallery": {
+						"value": "[parameters('customVhdOrGallery')]"
 					}
-				},
-				"storageProfile": {
-					"imageReference": "[variables('imageReference')]",
-					"osDisk": {
-						"name": "[concat(variables('openshiftLoadBalancerHostname'), 'osdisk')]",
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftLoadBalancerHostname'), '.vhd')]"
-						},
-						"caching": "ReadWrite",
-						"createOption": "FromImage"
-					}
-				},
-				"networkProfile": {
-					"networkInterfaces": [{
-						"id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('openshiftLoadBalancerHostname'), 'nic'))]"
-					}]
 				}
 			}
 		}, {
-			"type": "Microsoft.Compute/virtualMachines",
-			"name": "[concat(variables('openshiftMasterHostname'), '-', copyIndex())]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionCompute')]",
-			"tags": {
-				"displayName": "OpenShiftMasterVirtualMachines"
-			},
+			"name": "Master VM Deployment",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
-				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftMasterHostname'), copyIndex(), 'nic')]"
+				"masterNicLoop",
+				"masteravailabilityset"
 			],
 			"copy": {
 				"name": "masterVmLoop",
 				"count": "[parameters('masterInstanceCount')]"
 			},
 			"properties": {
-				"availabilitySet": {
-					"id": "[resourceId('Microsoft.Compute/availabilitySets', 'masteravailabilityset')]"
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "[variables('clusterMIDeploymentTemplateUrl')]",
+					"contentVersion": "1.0.0.0"
 				},
-				"hardwareProfile": {
-					"vmSize": "[parameters('masterVmSize')]"
-				},
-				"osProfile": {
-					"computerName": "[concat(variables('openshiftMasterHostname'), '-', copyIndex())]",
-					"adminUsername": "[parameters('adminUsername')]",
-					"linuxConfiguration": {
-						"disablePasswordAuthentication": true,
-						"ssh": {
-							"publicKeys": [{
-								"path": "[variables('sshKeyPath')]",
-								"keyData": "[parameters('sshPublicKey')]"
-							}]
-						}
-					}
-				},
-				"storageProfile": {
-					"imageReference": "[variables('imageReference')]",
-					"osDisk": {
-						"name": "[concat(variables('openshiftMasterHostname'), copyIndex(), 'osdisk')]",
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftMasterHostname'), copyIndex(), '.vhd')]"
-						},
-						"caching": "ReadWrite",
-						"createOption": "FromImage"
+				"parameters": {
+					"location": {
+						"value": "[variables('location')]"
 					},
-					"dataDisks": [{
-						"name": "[concat(variables('openshiftMasterHostname'), copyIndex(), '-docker-pool')]",
-						"diskSizeGB": "[parameters('dataDiskSize')]",
-						"lun": 0,
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftMasterHostname'), copyIndex(), '-docker-pool.vhd')]"
-						},
-						"createOption": "Empty"
-					}]
-				},
-				"networkProfile": {
-					"networkInterfaces": [{
-						"id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('openshiftMasterHostname'), copyIndex(), 'nic'))]"
-					}]
+					"sshKeyPath": {
+						"value": "[variables('sshKeyPath')]"
+					},
+					"sshPublicKey": {
+						"value": "[parameters('sshPublicKey')]"
+					},
+					"dataDiskSize": {
+						"value": "[parameters('dataDiskSize')]"
+					},
+					"adminUsername": {
+						"value": "[parameters('adminUsername')]"
+					},
+					"vmSize": {
+						"value": "[parameters('masterVmSize')]"
+					},
+					"availabilitySet": {
+						"value": "masteravailabilityset"
+					},
+					"hostname": {
+						"value": "[concat(variables('openshiftMasterHostname'), '-', copyIndex())]"
+					},
+					"customImageName": {
+						"value": "[parameters('customImageName')]"
+					},
+					"newStorageAccount": {
+						"value": "[variables('newStorageAccountMaster')]"
+					},
+					"customStorageAccount": {
+						"value": "[parameters('customStorageAccount')]"
+					},
+					"imageReference": {
+						"value": "[variables('imageReference')]"
+					},
+					"apiVersionStorage": {
+						"value": "[variables('apiVersionStorage')]"
+					},
+					"customVhdOrGallery": {
+						"value": "[parameters('customVhdOrGallery')]"
+					}
 				}
 			}
 		}, {
-			"type": "Microsoft.Compute/virtualMachines",
-			"name": "[concat(variables('openshiftInfraHostname'), '-', copyIndex())]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionCompute')]",
-			"tags": {
-				"displayName": "OpenShiftInfraNodes"
-			},
+			"name": "Infra VM Deployment",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
-				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftInfraHostname'), copyIndex(), 'nic')]"
+				"infraNicLoop",
+				"infraavailabilityset"
 			],
 			"copy": {
-				"name": "infraLoop",
-				"count": "[parameters('masterInstanceCount')]"
+				"name": "infraVmLoop",
+				"count": "[parameters('infraInstanceCount')]"
 			},
 			"properties": {
-				"availabilitySet": {
-					"id": "[resourceId('Microsoft.Compute/availabilitySets', 'nodeavailabilityset')]"
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "[variables('clusterMIDeploymentTemplateUrl')]",
+					"contentVersion": "1.0.0.0"
 				},
-				"hardwareProfile": {
-					"vmSize": "[parameters('masterVmSize')]"
-				},
-				"osProfile": {
-					"computerName": "[concat(variables('openshiftInfraHostname'), '-', copyIndex())]",
-					"adminUsername": "[parameters('adminUsername')]",
-					"linuxConfiguration": {
-						"disablePasswordAuthentication": true,
-						"ssh": {
-							"publicKeys": [{
-								"path": "[variables('sshKeyPath')]",
-								"keyData": "[parameters('sshPublicKey')]"
-							}]
-						}
-					}
-				},
-				"storageProfile": {
-					"imageReference": "[variables('imageReference')]",
-					"osDisk": {
-						"name": "[concat(variables('openshiftInfraHostname'), copyIndex(), 'osdisk')]",
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftInfraHostname'), copyIndex(), '.vhd')]"
-						},
-						"caching": "ReadWrite",
-						"createOption": "FromImage"
+				"parameters": {
+					"location": {
+						"value": "[variables('location')]"
 					},
-					"dataDisks": [{
-						"name": "[concat(variables('openshiftInfraHostname'), copyIndex(), '-docker-pool')]",
-						"diskSizeGB": "[parameters('dataDiskSize')]",
-						"lun": 0,
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftInfraHostname'), copyIndex(), 'docker-pool.vhd')]"
-						},
-						"createOption": "Empty"
-					}]
-				},
-				"networkProfile": {
-					"networkInterfaces": [{
-						"id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('openshiftInfraHostname'), copyIndex(), 'nic'))]"
-					}]
+					"sshKeyPath": {
+						"value": "[variables('sshKeyPath')]"
+					},
+					"sshPublicKey": {
+						"value": "[parameters('sshPublicKey')]"
+					},
+					"dataDiskSize": {
+						"value": "[parameters('dataDiskSize')]"
+					},
+					"adminUsername": {
+						"value": "[parameters('adminUsername')]"
+					},
+					"vmSize": {
+						"value": "[parameters('infraVmSize')]"
+					},
+					"availabilitySet": {
+						"value": "infraavailabilityset"
+					},
+					"hostname": {
+						"value": "[concat(variables('openshiftInfraHostname'), '-', copyIndex())]"
+					},
+					"customImageName": {
+						"value": "[parameters('customImageName')]"
+					},
+					"newStorageAccount": {
+						"value": "[variables('newStorageAccountMaster')]"
+					},
+					"customStorageAccount": {
+						"value": "[parameters('customStorageAccount')]"
+					},
+					"imageReference": {
+						"value": "[variables('imageReference')]"
+					},
+					"apiVersionStorage": {
+						"value": "[variables('apiVersionStorage')]"
+					},
+					"customVhdOrGallery": {
+						"value": "[parameters('customVhdOrGallery')]"
+					}
 				}
 			}
 		}, {
-			"type": "Microsoft.Compute/virtualMachines",
-			"name": "[concat(variables('openshiftNodeHostname'), '-', copyIndex())]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionCompute')]",
-			"tags": {
-				"displayName": "OpenShiftNodes"
-			},
+			"name": "Node VM Deployment",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountNodeOS'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountNodeOs'))]",
 				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountNodeData'))]",
-				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftNodeHostname'), copyIndex(), 'nic')]"
+				"nodeNicLoop",
+				"nodeavailabilityset"
 			],
 			"copy": {
-				"name": "nodeLoop",
+				"name": "nodeVmLoop",
 				"count": "[parameters('nodeInstanceCount')]"
 			},
 			"properties": {
-				"availabilitySet": {
-					"id": "[resourceId('Microsoft.Compute/availabilitySets', 'nodeavailabilityset')]"
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "[variables('clusterNodeDeploymentTemplateUrl')]",
+					"contentVersion": "1.0.0.0"
 				},
-				"hardwareProfile": {
-					"vmSize": "[parameters('nodeVmSize')]"
-				},
-				"osProfile": {
-					"computerName": "[concat(variables('openshiftNodeHostname'), '-', copyIndex())]",
-					"adminUsername": "[parameters('adminUsername')]",
-					"linuxConfiguration": {
-						"disablePasswordAuthentication": true,
-						"ssh": {
-							"publicKeys": [{
-								"path": "[variables('sshKeyPath')]",
-								"keyData": "[parameters('sshPublicKey')]"
-							}]
-						}
-					}
-				},
-				"storageProfile": {
-					"imageReference": "[variables('imageReference')]",
-					"osDisk": {
-						"name": "[concat(variables('openshiftNodeHostname'), copyIndex(), 'osdisk')]",
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountNodeOS')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftNodeHostname'), copyIndex(), '.vhd')]"
-						},
-						"caching": "ReadWrite",
-						"createOption": "FromImage"
+				"parameters": {
+					"location": {
+						"value": "[variables('location')]"
 					},
-					"dataDisks": [{
-						"name": "[concat(variables('openshiftNodeHostname'), copyIndex(), '-docker-pool')]",
-						"diskSizeGB": "[parameters('dataDiskSize')]",
-						"lun": 0,
-						"vhd": {
-							"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('newStorageAccountNodeData')), variables('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), variables('openshiftNodeHostname'), copyIndex(), '-docker-pool.vhd')]"
-						},
-						"createOption": "Empty"
-					}]
-				},
-				"networkProfile": {
-					"networkInterfaces": [{
-						"id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('openshiftNodeHostname'), copyIndex(), 'nic'))]"
-					}]
+					"sshKeyPath": {
+						"value": "[variables('sshKeyPath')]"
+					},
+					"sshPublicKey": {
+						"value": "[parameters('sshPublicKey')]"
+					},
+					"dataDiskSize": {
+						"value": "[parameters('dataDiskSize')]"
+					},
+					"adminUsername": {
+						"value": "[parameters('adminUsername')]"
+					},
+					"vmSize": {
+						"value": "[parameters('infraVmSize')]"
+					},
+					"availabilitySet": {
+						"value": "nodeavailabilityset"
+					},
+					"hostname": {
+						"value": "[concat(variables('openshiftNodeHostname'), '-', copyIndex())]"
+					},
+					"customImageName": {
+						"value": "[parameters('customImageName')]"
+					},
+					"newStorageAccountOs": {
+						"value": "[variables('newStorageAccountNodeOs')]"
+					},
+					"newStorageAccountData": {
+						"value": "[variables('newStorageAccountNodeData')]"
+					},
+					"customStorageAccount": {
+						"value": "[parameters('customStorageAccount')]"
+					},
+					"imageReference": {
+						"value": "[variables('imageReference')]"
+					},
+					"apiVersionStorage": {
+						"value": "[variables('apiVersionStorage')]"
+					},
+					"customVhdOrGallery": {
+						"value": "[parameters('customVhdOrGallery')]"
+					}
 				}
 			}
 		}, {
