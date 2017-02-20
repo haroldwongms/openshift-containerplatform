@@ -26,7 +26,6 @@ else
    if [[ $evaluate == "unit has already had" ]]
       then
 	     echo "Pool was already attached and was not attached again."
-		 exit 0
 	  else
          echo "Incorrect Pool ID or no entitlements available"
          exit 4
