@@ -1,19 +1,26 @@
 #!/bin/bash
 echo $(date) " - Starting Script"
 
-ORG=$1
-ACT_KEY="$2"
-POOL_ID=$3
+SELECT=$1
+USERNAME_ORG=$2
+PASSWORD_ACT_KEY="$3"
+POOL_ID=$4
 
 # Register Host with Cloud Access Subscription
 echo $(date) " - Register host with Cloud Access Subscription"
 
-subscription-manager register --org="$ORG" --activationkey="$ACT_KEY"
+if [[ $SELECT == "usernamepassword" ]]
+then
+   subscription-manager register --username="$USERNAME_ORG" --password="$PASSWORD_ACT_KEY"
+else
+   subscription-manager register --org="$ORG" --activationkey="$ACT_KEY"
+fi
+
 if [ $? -eq 0 ]
 then
    echo "Subscribed successfully"
 else
-   echo "Incorrect Organization ID and / or Activation Key specified"
+   echo "Incorrect Username and Password or Organization ID and / or Activation Key specified"
    exit 3
 fi
 
@@ -25,7 +32,7 @@ else
    evaluate=$( cut -f 2-5 -d ' ' attach.log )
    if [[ $evaluate == "unit has already had" ]]
       then
-	     echo "Pool $POOL_ID was already attached and was not attached again."
+         echo "Pool $POOL_ID was already attached and was not attached again."
 	  else
          echo "Incorrect Pool ID or no entitlements available"
          exit 4

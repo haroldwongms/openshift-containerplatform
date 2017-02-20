@@ -168,18 +168,28 @@
 				"description": "Password for OpenShift user to login to OpenShift Console"
 			}
 		},
-		"rhsmOrgId": {
-			"type": "securestring",
+		"rhsmUsernamePasswordOrActivationKey": {
+			"type": "string",
 			"minLength": 1,
+			"allowedValues": [
+				"usernamepassword", "activationkey"
+			]
 			"metadata": {
-				"description": "Red Hat Subscription Manager Organization ID. To find it, run on registered server: subscription-manager identity"
+				"description": "Select whether you want to use your Red Hat Subscription Manager Username and Password or Organization ID and Activation Key to register the RHEL instance to your Red Hat Subscription."
 			}
 		},
-		"rhsmActivationKey": {
+		"rhsmUsernameOrOrgId": {
 			"type": "securestring",
 			"minLength": 1,
 			"metadata": {
-				"description": "Red Hat Subscription Manager Activation Key. To find it, go to: https://access.redhat.com/management/activation_keys"
+				"description": "Red Hat Subscription Manager Username or Organization ID. If usernamepassword selected in previous input, then use Username; otherwise entier Organization ID. To find your Organization ID, run on registered server: subscription-manager identity"
+			}
+		},
+		"rhsmPasswordOrActivationKey": {
+			"type": "securestring",
+			"minLength": 1,
+			"metadata": {
+				"description": "Red Hat Subscription Manager Password or Activation Key. To find or create your Activation Key, go to: https://access.redhat.com/management/activation_keys"
 			}
 		},
 		"rhsmPoolId": {
@@ -1477,7 +1487,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('rhsmPasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ',variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
@@ -1502,7 +1512,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('loadBalancerPrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('loadBalancerPrepScriptFileName'), ' ', parameters('rhsmPasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
@@ -1531,7 +1541,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('masterPrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('masterPrepScriptFileName'), ' ', parameters('rhsmPasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
@@ -1560,7 +1570,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('rhsmPasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
@@ -1589,7 +1599,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('rhsmOrgId'), ' ', variables('singlequote'), parameters('rhsmActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('rhsmPasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
