@@ -65,13 +65,6 @@
 				"description": "Storage Account for Custom Image"
 			}
 		},
-		"imageReference": {
-			"type": "array",
-			"minLength": 1,
-			"metadata": {
-				"description": "Gallery Image Reference"
-			}
-		},
 		"apiVersionStorage": {
 			"type": "string",
 			"minLength": 1,
@@ -88,9 +81,16 @@
 		}
 	},
 	"variables": {
+		"osType": {
+			"publisher": "RedHat",
+			"offer": "RHEL",
+			"sku": "7.3",
+			"version": "latest"
+		},
+		"imageReference": "[variables('osType')]",
 		"storageProfileChosen": "[concat(parameters('customVhdOrGallery'), 'StorageProfile')]",
 		"galleryStorageProfile": {
-			"imageReference": "[parameters('imageReference')]",
+			"imageReference": "[variables('imageReference')]",
 			"osDisk": {
 				"name": "[concat(parameters('hostname'), 'osdisk')]",
 				"vhd": {
