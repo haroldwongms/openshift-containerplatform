@@ -25,7 +25,7 @@ else
    evaluate=$( cut -f 2-5 -d ' ' attach.log )
    if [[ $evaluate == "unit has already had" ]]
       then
-	     echo "Pool was already attached and was not attached again."
+	     echo "Pool $POOL_ID was already attached and was not attached again."
 	  else
          echo "Incorrect Pool ID or no entitlements available"
          exit 4
