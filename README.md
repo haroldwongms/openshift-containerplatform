@@ -9,7 +9,7 @@ This template deploys OpenShift Container Platform with basic username / passwor
 |Infra Load Balancer	|3 probes and 3 rules for TCP 80, TCP 443 and TCP 9090 									                                             |
 |Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
 |Storage Accounts   	|1 Storage Account for Master, Infra, Bastion and Load Balancer VMs<br />2 Storage Accounts for Node VMs<br />1 Storage Account for Private Docker Registry                                                                                                                |
-|Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1 Load Balancer Node to do internal load balancing to the masters<br />1 or 3 Masters. First Master is used to run a NFS server to provide persistent storage.<br />1 or 3 Infra nodes<br />User-defined number of nodes<br />All VMs include a single attached data disk for Docker thin pool logical volume|
+|Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1 Load Balancer Node to do internal load balancing to the masters<br />1 or 3 Masters. First Master is used to run a NFS server to provide persistent storage.<br />1, 2, or 3 Infra nodes<br />User-defined number of nodes (1 to 30)<br />All VMs include a single attached data disk for Docker thin pool logical volume|
 ## READ the instructions in its entirety before deploying!
 
 This template deploys multiple VMs and requires some pre-work before you can successfully deploy the OpenShift Cluster.  If you don't get the pre-work done correctly, you will most likely fail to deploy the cluster using this template.  Please read the instructions completely before you proceed. 
@@ -92,13 +92,14 @@ Deploy to Azure using Azure Portal:
     <img src="http://armviz.io/visualizebutton.png"/>
 </a><br/>
 
-Once you have collected all of the prerequisites for the template, you can deploy the template by clicking Deploy to Azure or populating the *azuredeploy.parameters.json* file and executing Resource Manager deployment commands with PowerShell or the Azure CLI.
+Once you have collected all of the prerequisites for the template, you can deploy the template by clicking Deploy to Azure or populating the **azuredeploy.parameters.json** file and executing Resource Manager deployment commands with PowerShell or the Azure CLI.
 
 ### NOTE
 
 The OpenShift Ansible playbook does take a while to run when using VMs backed by Standard Storage. VMs backed by Premium Storage are faster. If you want Premium Storage, select a DS or GS series VM.
 <hr />
 Be sure to follow the OpenShift instructions to create the necessary DNS entry for the OpenShift Router for access to applications. <br />
+
 Currently there is a hickup in the deployment of metrics and logging that will cause the deployment to take a little longer than normal.  When you look at the stdout files on the Bastion host, you will see that the installation had numerous retries for certain playbook tasks.  This is normal.
 
 ### TROUBLESHOOTING
