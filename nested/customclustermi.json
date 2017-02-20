@@ -84,6 +84,13 @@
 			"metadata": {
 				"description": "Storage API Version"
 			}
+		},
+		"apiVersionCompute": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Compute API Version"
+			}
 		}
 	},
 	"variables": {
