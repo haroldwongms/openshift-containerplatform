@@ -66,7 +66,7 @@
 			}
 		},
 		"imageReference": {
-			"type": "object",
+			"type": "array",
 			"minLength": 1,
 			"metadata": {
 				"description": "Gallery Image Reference"
