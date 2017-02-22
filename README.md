@@ -4,7 +4,7 @@ This template deploys OpenShift Container Platform with basic username / passwor
 
 |Resource           	|Properties                                                                                                                          |
 |-----------------------|------------------------------------------------------------------------------------------------------------------------------------|
-|Virtual Network   		|**Address prefix:** 192.168.0.0/16<br />**Master subnet:** 192.168.1.0/24<br />**Node subnet:** 192.168.2.0/24                      |
+|Virtual Network   		|**Address prefix:** 10.0.0.0/8<br />**Master subnet:** 10.1.0.0/16<br />**Node subnet:** 10.2.0.0/16                      |
 |Master Load Balancer	|2 probes and 2 rules for TCP 8443 and TCP 9090 <br/> NAT rules for SSH on Ports 2200-220X                                           |
 |Infra Load Balancer	|3 probes and 3 rules for TCP 80, TCP 443 and TCP 9090 									                                             |
 |Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
@@ -77,6 +77,8 @@ You will also need to get the Pool ID that contains your entitlements for OpenSh
 9.  dataDiskSize: Size of data disk to attach to nodes for Docker volume - valid sizes are 128 GB, 512 GB and 1023 GB
 10. adminUsername: Admin username for both OS (VM) login and initial OpenShift user
 11. openshiftPassword: Password for OpenShift user
+11. enableMetrics: Enable Metrics - value is either true or false
+11. enableLoggin: Enable Logging - value is either true or false
 12. rhsmUsernamePasswordOrActivationKey: Choose to use Username and Password or Organization ID and Activation Key for registration. Valid values are "usernamepassword" and "activationkey".
 12. rhsmUsernameOrOrgId: Red Hat Subscription Manager Username or Organization ID. If usernamepassword selected in previous input, then use Username; otherwise entier Organization ID. To find your Organization ID, run on registered server: `subscription-manager identity`.
 13. rhsmPasswordOrActivationKey: Red Hat Subscription Manager Password or Activation Key for your Cloud Access subscription. You can get this from [here](https://access.redhat.com/management/activation_keys).
@@ -110,12 +112,12 @@ Currently there is a hickup in the deployment of metrics and logging that will c
 
 If you encounter an error during deployment of the cluster, please view the deployment status.  The following Error Codes will help to narrow things down.
 
-1. Exit Code 3: Your Red Hat Subscription User Name and / or Password is incorrect
+1. Exit Code 3: Your Red Hat Subscription User Name / Password or Organization ID / Activation Key is incorrect
 2. Exit Code 4: Your Red Hat Pool ID is incorrect or there are no entitlements available
 3. Exit Code 5: Unable to provision Docker Thin Pool Volume
 4. Exit Code 6: Unable to mount filesystem on Master zero node for NFS 
 
-For further troubleshooting, please SSH into your Bastion node on port 22.  You will need to be root (sudo su -) and then navigate to the following directory: **/var/lib/waagent/custom-script/download**<br/><br/>
+For further troubleshooting, please SSH into your Bastion node on port 22.  You will need to be root **(sudo su -)** and then navigate to the following directory: **/var/lib/waagent/custom-script/download**<br/><br/>
 You should see a folder named '0' and '1'.  In each of these folders, you will see two files, stderr and stdout.  You can look through these files to determine where the failure occurred.
 
 ## Post-Deployment Operations
