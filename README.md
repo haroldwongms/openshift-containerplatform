@@ -63,12 +63,12 @@ You will also need to get the Pool ID that contains your entitlements for OpenSh
 
 1.  _artifactsLocation: URL for artifacts (json, scripts, etc.)
 2.  customVhdOrGallery: Choose to use a custom VHD image or an image from the Azure Gallery. The valid inputs are "gallery" or "custom". The default is set to "gallery".
-2.  customStorageAccount: The URL to the storage account that contains your custom VHD image. Include the ending '/'. Example: https://customstorageaccount.blob.core.windows.net/
-2.  customOsDiskName: The folder and name of the custom VHD image. Example: images/customosdisk.vhd
+2.  customStorageAccount: The URL to the storage account that contains your custom VHD image. Include the ending '/'. If "gallery" is chosen above, this parameter will not be used. Example: https://customstorageaccount.blob.core.windows.net/
+2.  customOsDiskName: The folder and name of the custom VHD image. If "gallery" is chosen above, this parameter will be not be used. Example: images/customosdisk.vhd
 2.  masterVmSize: Size of the Master VM. Select from one of the allowed VM sizes listed in the azuredeploy.json file
 3.  nodeVmSize: Size of the Node VM. Select from one of the allowed VM sizes listed in the azuredeploy.json file
 3.  infraVmSize: Size of the Infra VM. Select from one of the allowed VM sizes listed in the azuredeploy.json file
-4.  openshiftClusterPrefix: Cluster Prefix used to configure hostnames for all nodes - bastion, master, infra and nodes (between 1 and 5 characters)
+4.  openshiftClusterPrefix: Cluster Prefix used to configure hostnames for all nodes - bastion, master, infra and nodes. Between 1 and 5 characters for Commercial Azure and between 1 and 3 characters for Azure Government.
 5.  openshiftMasterPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Master Node by
 6.  infraLbPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Node Load Balancer by.  Used to access deployed applications
 7.  masterInstanceCount: Number of Masters nodes to deploy
@@ -76,9 +76,9 @@ You will also need to get the Pool ID that contains your entitlements for OpenSh
 8.  infraInstanceCount: Number of infra nodes to deploy
 9.  dataDiskSize: Size of data disk to attach to nodes for Docker volume - valid sizes are 128 GB, 512 GB and 1023 GB
 10. adminUsername: Admin username for both OS (VM) login and initial OpenShift user
-11. openshiftPassword: Password for OpenShift user
-11. enableMetrics: Enable Metrics - value is either true or false
-11. enableLoggin: Enable Logging - value is either true or false
+11. openshiftPassword: Password for OpenShift user and root user
+11. enableMetrics: Enable Metrics - value is either "true" or "false"
+11. enableLogging: Enable Logging - value is either "true" or "false"
 12. rhsmUsernamePasswordOrActivationKey: Choose to use Username and Password or Organization ID and Activation Key for registration. Valid values are "usernamepassword" and "activationkey".
 12. rhsmUsernameOrOrgId: Red Hat Subscription Manager Username or Organization ID. If usernamepassword selected in previous input, then use Username; otherwise entier Organization ID. To find your Organization ID, run on registered server: `subscription-manager identity`.
 13. rhsmPasswordOrActivationKey: Red Hat Subscription Manager Password or Activation Key for your Cloud Access subscription. You can get this from [here](https://access.redhat.com/management/activation_keys).
