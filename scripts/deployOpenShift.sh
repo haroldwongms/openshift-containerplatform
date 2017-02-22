@@ -309,4 +309,8 @@ echo $(date) "- Configuring Docker Registry to use Azure Storage Account"
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall4.yml"
 
+# Delete postinstall.yml file
+echo $(date) "- Deleting unecessary file"
+rm /home/${SUDOUSER}/postinstall.yml
+
 echo $(date) " - Script complete"
