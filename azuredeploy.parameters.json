@@ -50,6 +50,12 @@
 		"openshiftPassword": {
 			"value": "changeme"
 		},
+		"enableMetrics": {
+			"value": "true"
+		},
+		"enableLogging": {
+			"value": "true"
+		},
 		"rhsmUsernamePasswordOrActivationKey": {
 			"value": "password"
 		},

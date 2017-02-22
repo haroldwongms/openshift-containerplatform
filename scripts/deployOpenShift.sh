@@ -19,6 +19,9 @@ MASTERCOUNT=${12}
 ROUTING=${13}
 REGISTRYSA=${14}
 ACCOUNTKEY="${15}"
+METRICS=${16}
+LOGGING=${17}
+
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 INFRALOOP=$((INFRACOUNT - 1))
@@ -145,14 +148,8 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 # openshift_hosted_registry_storage_volume_name=registry
 # openshift_hosted_registry_storage_volume_size=5Gi
 
-# openshift_hosted_registry_storage_kind=azure
-# openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
-# openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
-# openshift_hosted_registry_storage_azure_container=registry
-# #openshift_hosted_registry_storage_azure_realm=
-
 # Setup metrics
-openshift_hosted_metrics_deploy=true
+openshift_hosted_metrics_deploy=$METRICS
 # As of this writing, there's a bug in the metrics deployment.
 # You'll see the metrics failing to deploy 59 times, it will, though, succeed the 60'th time.
 openshift_hosted_metrics_storage_kind=nfs
@@ -164,7 +161,7 @@ openshift_hosted_metrics_storage_volume_size=10Gi
 openshift_hosted_metrics_public_url=https://metrics.$ROUTING/hawkular/metrics
 
 # Setup logging
-openshift_hosted_logging_deploy=true
+openshift_hosted_logging_deploy=$LOGGING
 openshift_hosted_logging_storage_kind=nfs
 openshift_hosted_logging_storage_access_modes=['ReadWriteOnce']
 openshift_hosted_logging_storage_host=$MASTER-0.$DOMAIN
@@ -227,14 +224,8 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 # openshift_hosted_registry_storage_volume_name=registry
 # openshift_hosted_registry_storage_volume_size=5Gi
 
-# openshift_hosted_registry_storage_kind=azure
-# openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
-# openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
-# openshift_hosted_registry_storage_azure_container=registry
-# openshift_hosted_registry_storage_azure_realm=
-
 # Setup metrics
-openshift_hosted_metrics_deploy=true
+openshift_hosted_metrics_deploy=$METRICS
 # As of this writing, there's a bug in the metrics deployment.
 # You'll see the metrics failing to deploy 59 times, it will, though, succeed the 60'th time.
 openshift_hosted_metrics_storage_kind=nfs
@@ -246,7 +237,7 @@ openshift_hosted_metrics_storage_volume_size=10Gi
 openshift_hosted_metrics_public_url=https://metrics.$ROUTING/hawkular/metrics
 
 # Setup logging
-openshift_hosted_logging_deploy=true
+openshift_hosted_logging_deploy=$LOGGING
 openshift_hosted_logging_storage_kind=nfs
 openshift_hosted_logging_storage_access_modes=['ReadWriteOnce']
 openshift_hosted_logging_storage_host=$MASTER-0.$DOMAIN
@@ -317,5 +308,9 @@ runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall3.yml"
 echo $(date) "- Configuring Docker Registry to use Azure Storage Account"
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall4.yml"
+
+# Delete postinstall.yml file
+echo $(date) "- Deleting unecessary file"
+rm /home/${SUDOUSER}/postinstall.yml
 
 echo $(date) " - Script complete"
