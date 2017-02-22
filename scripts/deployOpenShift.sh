@@ -143,12 +143,6 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 # openshift_hosted_registry_storage_volume_name=registry
 # openshift_hosted_registry_storage_volume_size=5Gi
 
-# openshift_hosted_registry_storage_kind=azure
-# openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
-# openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
-# openshift_hosted_registry_storage_azure_container=registry
-# #openshift_hosted_registry_storage_azure_realm=
-
 # Setup metrics
 openshift_hosted_metrics_deploy=true
 # As of this writing, there's a bug in the metrics deployment.
@@ -224,12 +218,6 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 # openshift_hosted_registry_storage_nfs_directory=/exports
 # openshift_hosted_registry_storage_volume_name=registry
 # openshift_hosted_registry_storage_volume_size=5Gi
-
-# openshift_hosted_registry_storage_kind=azure
-# openshift_hosted_registry_storage_azure_accountname=hwocpregistry000
-# openshift_hosted_registry_storage_azure_accountkey=S0XQPgRPAzRPPdnr8Oxwc68gMbCVqLF7078EAjDJjNTFuO2oJyT6qn4tHhcZ4i6vLhkfXn1sOcWH+tt0CyqAbQ==
-# openshift_hosted_registry_storage_azure_container=registry
-# openshift_hosted_registry_storage_azure_realm=
 
 # Setup metrics
 openshift_hosted_metrics_deploy=true
