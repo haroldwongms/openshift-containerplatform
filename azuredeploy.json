@@ -168,6 +168,28 @@
 				"description": "Password for OpenShift user to login to OpenShift Console"
 			}
 		},
+		"enableMetrics": {
+			"type": "string",
+			"minLength": 1,
+			"defaultValue": "true",
+			"allowedValues": [
+				"true", "false"
+			],
+			"metadata": {
+				"description": "Enable OpenShift Metrics: true or false"
+			}
+		},
+		"enableLogging": {
+			"type": "string",
+			"minLength": 1,
+			"defaultValue": "true",
+			"allowedValues": [
+				"true", "false"
+			],
+			"metadata": {
+				"description": "Enable OpenShift Logging: true or false"
+			}
+		},
 		"rhsmUsernamePasswordOrActivationKey": {
 			"type": "string",
 			"minLength": 1,
@@ -1666,6 +1688,12 @@
 					},
 					"openshiftPassword": {
 						"value": "[parameters('openshiftPassword')]"
+					},
+					"enableMetrics": {
+						"value": "[parameters('enableMetrics')]"
+					},
+					"enableLogging": {
+						"value": "[parameters('enableLogging')]"
 					},
 					"xipioDomain": {
 						"value": "[concat(reference(parameters('infraLbPublicIpDnsLabel')).ipAddress, '.xip.io')]"
