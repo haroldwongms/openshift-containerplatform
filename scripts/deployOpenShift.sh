@@ -14,12 +14,14 @@ INFRA=$7
 NODE=$8
 LB=$9
 NODECOUNT=${10}
-MASTERCOUNT=${11}
-ROUTING=${12}
-REGISTRYSA=${13}
-ACCOUNTKEY="${14}"
+INFRACOUNT=${11}
+MASTERCOUNT=${12}
+ROUTING=${13}
+REGISTRYSA=${14}
+ACCOUNTKEY="${15}"
 
 MASTERLOOP=$((MASTERCOUNT - 1))
+INFRALOOP=$((INFRACOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
 
 DOMAIN=$( awk 'NR==2' /etc/resolv.conf | awk '{ print $2 }' )
@@ -175,7 +177,7 @@ $MASTER-0.$DOMAIN
 # host group for nodes
 [nodes]
 $MASTER-0.$DOMAIN openshift_node_labels="{'region': 'master', 'zone': 'default'}"
-$INFRA-0.$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+$INFRA-[0:${INFRALOOP}].$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
 $NODE-[0:${NODELOOP}].$DOMAIN openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
 EOF
 
@@ -253,12 +255,12 @@ $MASTER-[0:${MASTERLOOP}].$DOMAIN
 $MASTER-0.$DOMAIN
 
 [lb]
-$LB
+$LB.$DOMAIN
 
 # host group for nodes
 [nodes]
 $MASTER-[0:${MASTERLOOP}].$DOMAIN openshift_node_labels="{'region': 'master', 'zone': 'default'}"
-$INFRA-[0:${MASTERLOOP}].$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+$INFRA-[0:${INFRALOOP}].$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
 $NODE-[0:${NODELOOP}].$DOMAIN openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
 EOF
 
