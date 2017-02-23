@@ -26,7 +26,7 @@ After successful deployment, the Bastion Node is no longer required.  You can tu
 
 ### Generate SSH Keys
 
-You'll need to generate an SSH key pair (Public / Private) in order to provision this template. Ensure that you do NOT include a passphrase with the private key. <br/><br/>
+You'll need to generate an SSH key pair (Public / Private) in order to provision this template. Ensure that you do **NOT** include a passphrase with the private key. <br/><br/>
 If you are using a Windows computer, you can download puttygen.exe.  You will need to export to OpenSSH (from Conversions menu) to get a valid Private Key for use in the Template.<br/><br/>
 From a Linux or Mac, you can just use the ssh-keygen command.  Once you are finished deploying the cluster, you can always generate new keys that uses a passphrase and replace the original ones used during inital deployment.
 
@@ -46,7 +46,7 @@ You will need to create a Key Vault to store your SSH Private Key that will then
          Ex: `azure group create ResourceGroupName 'East US'` <br/>
   b.  Create Key Vault: azure keyvault create -u \<vault-name\> -g \<resource-group\> -l \<location\><br/>
          Ex: `azure keyvault create -u KeyVaultName -g ResourceGroupName -l 'East US'`<br/>
-  c.  Create Secret: azure keyvault secret set -u \<vault-name\> -s \<secret-name\> --file \<private-key-file-name\>`<br/>
+  c.  Create Secret: azure keyvault secret set -u \<vault-name\> -s \<secret-name\> --file \<private-key-file-name\><br/>
          Ex: `azure keyvault secret set -u KeyVaultName -s SecretName --file ~/.ssh/id_rsa` <br/>
   d.  Enable the Keyvvault for Template Deployment: azure keyvault set-policy -u \<vault-name\> --enabled-for-template-deployment true <br/>
          Ex: `azure keyvault set-policy -u KeyVaultName --enabled-for-template-deployment true` <br/>
