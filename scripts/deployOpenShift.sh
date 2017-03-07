@@ -184,11 +184,11 @@ EOF
 
 for (( c=0; c<$INFRALOOP; c++ ))
 do
-  echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostame=$INFRA-$c" >> /etc/ansible/hosts
+  echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
 done
 for (( c=0; c<$NODELOOP; c++ ))
 do
-  echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostame=$NODE-$c" >> /etc/ansible/hosts
+  echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
 done
 
 else
@@ -273,15 +273,15 @@ EOF
 
 for (( c=0; c<$MASTERLOOP; c++ ))
 do
-  echo "$MASTER-$c openshift_node_labels=\"{'region': 'master', 'zone': 'default'}\" openshift_hostame=$MASTER-$c" >> /etc/ansible/hosts
+  echo "$MASTER-$c openshift_node_labels=\"{'region': 'master', 'zone': 'default'}\" openshift_hostname=$MASTER-$c" >> /etc/ansible/hosts
 done
 for (( c=0; c<$INFRALOOP; c++ ))
 do
-  echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostame=$INFRA-$c" >> /etc/ansible/hosts
+  echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
 done
 for (( c=0; c<$NODELOOP; c++ ))
 do
-  echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostame=$NODE-$c" >> /etc/ansible/hosts
+  echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
 done
 
 fi
