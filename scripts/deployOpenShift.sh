@@ -182,11 +182,11 @@ $MASTER-0
 $MASTER-0 openshift_node_labels="{'region': 'master', 'zone': 'default'}" openshift_hostname=$MASTER-0
 EOF
 
-for (( c=0; c<$INFRALOOP; c++ ))
+for (( c=0; c<$INFRACOUNT; c++ ))
 do
   echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
 done
-for (( c=0; c<$NODELOOP; c++ ))
+for (( c=0; c<$NODECOUNT; c++ ))
 do
   echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
 done
@@ -271,15 +271,15 @@ $LB
 [nodes]
 EOF
 
-for (( c=0; c<$MASTERLOOP; c++ ))
+for (( c=0; c<$MASTERCOUNT; c++ ))
 do
   echo "$MASTER-$c openshift_node_labels=\"{'region': 'master', 'zone': 'default'}\" openshift_hostname=$MASTER-$c" >> /etc/ansible/hosts
 done
-for (( c=0; c<$INFRALOOP; c++ ))
+for (( c=0; c<$INFRACOUNT; c++ ))
 do
   echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
 done
-for (( c=0; c<$NODELOOP; c++ ))
+for (( c=0; c<$NODECOUNT; c++ ))
 do
   echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
 done
@@ -329,5 +329,8 @@ runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall4.yml"
 # Delete postinstall.yml file
 echo $(date) "- Deleting unecessary file"
 rm /home/${SUDOUSER}/postinstall.yml
+rm /home/${SUDOUSER}/postinstall2.yml
+rm /home/${SUDOUSER}/postinstall3.yml
+rm /home/${SUDOUSER}/postinstall4.yml
 
 echo $(date) " - Script complete"
