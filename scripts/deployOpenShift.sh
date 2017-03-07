@@ -154,7 +154,7 @@ openshift_hosted_metrics_deploy=$METRICS
 # You'll see the metrics failing to deploy 59 times, it will, though, succeed the 60'th time.
 openshift_hosted_metrics_storage_kind=nfs
 openshift_hosted_metrics_storage_access_modes=['ReadWriteOnce']
-openshift_hosted_metrics_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_metrics_storage_host=$MASTER-0
 openshift_hosted_metrics_storage_nfs_directory=/exports
 openshift_hosted_metrics_storage_volume_name=metrics
 openshift_hosted_metrics_storage_volume_size=10Gi
@@ -164,7 +164,7 @@ openshift_hosted_metrics_public_url=https://metrics.$ROUTING/hawkular/metrics
 openshift_hosted_logging_deploy=$LOGGING
 openshift_hosted_logging_storage_kind=nfs
 openshift_hosted_logging_storage_access_modes=['ReadWriteOnce']
-openshift_hosted_logging_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_logging_storage_host=$MASTER-0
 openshift_hosted_logging_storage_nfs_directory=/exports
 openshift_hosted_logging_storage_volume_name=logging
 openshift_hosted_logging_storage_volume_size=10Gi
@@ -172,17 +172,24 @@ openshift_master_logging_public_url=https://kibana.$ROUTING
 
 # host group for masters
 [masters]
-$MASTER-0.$DOMAIN
+$MASTER-0
 
 [nfs]
-$MASTER-0.$DOMAIN
+$MASTER-0
 
 # host group for nodes
 [nodes]
-$MASTER-0.$DOMAIN openshift_node_labels="{'region': 'master', 'zone': 'default'}"
-$INFRA-[0:${INFRALOOP}].$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
-$NODE-[0:${NODELOOP}].$DOMAIN openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
+$MASTER-0 openshift_node_labels="{'region': 'master', 'zone': 'default'}" openshift_hostname=$MASTER-0
 EOF
+
+for (( c=0; c<$INFRALOOP; c++ ))
+do
+  echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostame=$INFRA-$c" >> /etc/ansible/hosts
+done
+for (( c=0; c<$NODELOOP; c++ ))
+do
+  echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostame=$NODE-$c" >> /etc/ansible/hosts
+done
 
 else
 
@@ -219,7 +226,7 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 # Configure persistent storage via nfs server on master
 # openshift_hosted_registry_storage_kind=nfs
 # openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-# openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
+# openshift_hosted_registry_storage_host=$MASTER-0
 # openshift_hosted_registry_storage_nfs_directory=/exports
 # openshift_hosted_registry_storage_volume_name=registry
 # openshift_hosted_registry_storage_volume_size=5Gi
@@ -230,7 +237,7 @@ openshift_hosted_metrics_deploy=$METRICS
 # You'll see the metrics failing to deploy 59 times, it will, though, succeed the 60'th time.
 openshift_hosted_metrics_storage_kind=nfs
 openshift_hosted_metrics_storage_access_modes=['ReadWriteOnce']
-openshift_hosted_metrics_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_metrics_storage_host=$MASTER-0
 openshift_hosted_metrics_storage_nfs_directory=/exports
 openshift_hosted_metrics_storage_volume_name=metrics
 openshift_hosted_metrics_storage_volume_size=10Gi
@@ -240,7 +247,7 @@ openshift_hosted_metrics_public_url=https://metrics.$ROUTING/hawkular/metrics
 openshift_hosted_logging_deploy=$LOGGING
 openshift_hosted_logging_storage_kind=nfs
 openshift_hosted_logging_storage_access_modes=['ReadWriteOnce']
-openshift_hosted_logging_storage_host=$MASTER-0.$DOMAIN
+openshift_hosted_logging_storage_host=$MASTER-0
 openshift_hosted_logging_storage_nfs_directory=/exports
 openshift_hosted_logging_storage_volume_name=logging
 openshift_hosted_logging_storage_volume_size=10Gi
@@ -248,24 +255,34 @@ openshift_master_logging_public_url=https://kibana.$ROUTING
 
 # host group for masters
 [masters]
-$MASTER-[0:${MASTERLOOP}].$DOMAIN
+$MASTER-[0:${MASTERLOOP}]
 
 # host group for etcd
 [etcd]
-$MASTER-[0:${MASTERLOOP}].$DOMAIN
+$MASTER-[0:${MASTERLOOP}] 
 
 [nfs]
-$MASTER-0.$DOMAIN
+$MASTER-0
 
 [lb]
-$LB.$DOMAIN
+$LB 
 
 # host group for nodes
 [nodes]
-$MASTER-[0:${MASTERLOOP}].$DOMAIN openshift_node_labels="{'region': 'master', 'zone': 'default'}"
-$INFRA-[0:${INFRALOOP}].$DOMAIN openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
-$NODE-[0:${NODELOOP}].$DOMAIN openshift_node_labels="{'region': 'nodes', 'zone': 'default'}"
 EOF
+
+for (( c=0; c<$MASTERLOOP; c++ ))
+do
+  echo "$MASTER-$c openshift_node_labels=\"{'region': 'master', 'zone': 'default'}\" openshift_hostame=$MASTER-$c" >> /etc/ansible/hosts
+done
+for (( c=0; c<$INFRALOOP; c++ ))
+do
+  echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostame=$INFRA-$c" >> /etc/ansible/hosts
+done
+for (( c=0; c<$NODELOOP; c++ ))
+do
+  echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostame=$NODE-$c" >> /etc/ansible/hosts
+done
 
 fi
 
