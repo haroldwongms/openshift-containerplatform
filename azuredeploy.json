@@ -249,6 +249,20 @@
 				"description": "Key Vault Secret Name that contains the Private Key"
 			}
 		},
+		"aadClientId": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Azure AD Client ID"
+			}
+		},
+		"aadClientSecret": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Azure AD Client Secret"
+			}
+		},
 		"defaultSubDomainType": {
 			"type": "string",
 			"defaultValue": "xipio",
@@ -1063,7 +1077,7 @@
 			}
 		}, {
 			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftMasterHostname'), '-', copyIndex(), 'nic')]",
+			"name": "[concat(variables('openshiftMasterHostname'), '-', copyIndex(), '-nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -1103,7 +1117,7 @@
 			}
 		}, {
 			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftInfraHostname'), '-', copyIndex(), 'nic')]",
+			"name": "[concat(variables('openshiftInfraHostname'), '-', copyIndex(), '-nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -1137,7 +1151,7 @@
 			}
 		}, {
 			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftNodeHostname'), '-', copyIndex(), 'nic')]",
+			"name": "[concat(variables('openshiftNodeHostname'), '-', copyIndex(), '-nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -1580,6 +1594,12 @@
 					},
 					"enableLogging": {
 						"value": "[parameters('enableLogging')]"
+					},
+					"aadClientId": {
+						"value": "[parameters('aadClientId')]"
+					},
+					"aadClientSecret": {
+						"value": "[parameters('aadClientSecret')]"
 					},
 					"xipioDomain": {
 						"value": "[concat(reference(parameters('infraLbPublicIpDnsLabel')).ipAddress, '.xip.io')]"
