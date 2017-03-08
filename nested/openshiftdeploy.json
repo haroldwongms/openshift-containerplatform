@@ -161,7 +161,7 @@
 	},
 	"variables": {
 		"singlequote": "'",
-		"tenantId": "[subscription().tenantIdId]",
+		"tenantId": "[subscription().tenantId]",
 		"subscriptionId": "[subscription().subscriptionId]",
 		"location": "[resourceGroup().location]",
 		"resourceGroupName": "[resourceGroup().id]",
