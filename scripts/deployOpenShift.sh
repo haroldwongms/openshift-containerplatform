@@ -20,7 +20,7 @@ REGISTRYSA=${13}
 ACCOUNTKEY="${14}"
 METRICS=${15}
 LOGGING=${16}
-TENNANTID=${17}
+TENANTID=${17}
 SUBSCRIPTIONID=${18}
 AADCLIENTID=${19}
 AADCLIENTSECRET="${20}"
@@ -117,11 +117,11 @@ EOF
 cat > /etc/azure/azure.conf <<EOF
 
 {
-   "tenantId": "$TENNANTID",
+   "tenantId": "$TENANTID",
    "subscriptionId": "$SUBSCRIPTIONID",
    "aadClientId": "$AADCLIENTID",
    "aadClientSecret": "$AADCLIENTSECRET",
-   "aadTentantID": "$TENNANTID",
+   "aadTenantID": "$TENANTID",
    "resourceGroup": "$RESOURCEGROUP",
    "location": "$LOCATION",
 }
