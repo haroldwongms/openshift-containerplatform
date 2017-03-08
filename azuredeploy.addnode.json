@@ -353,7 +353,7 @@
 	"resources": [
 		{
 			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix'), 'nic')]",
+			"name": "[concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix'), '-nic')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -378,7 +378,7 @@
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
-				"[concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix'), 'nic')]"
+				"[concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix'), '-nic')]"
 			],
 			"properties": {
 				"mode": "Incremental",
