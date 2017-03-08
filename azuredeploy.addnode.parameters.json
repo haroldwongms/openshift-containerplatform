@@ -1,0 +1,54 @@
+﻿{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"_artifactsLocation": {
+			"value": "https://raw.githubusercontent.com/haroldwongms/openshift-containerplatform/shorthostname/"
+		},
+		"customVhdOrGallery": {
+			"value": "gallery"
+		},
+		"customStorageAccount": {
+			"value": "changeme"
+		},
+		"customOsDiskName": {
+			"value": "changeme"
+		},
+		"StorageAccountNodeOs": {
+			"value": "changeme"
+		},
+		"StorageAccountNodeData": {
+			"value": "changeme"
+		},
+		"nodeVmSize": {
+			"value": "Standard_DS2_v2"
+		},
+		"nodeSuffix": {
+			"value": 2
+		},
+		"openshiftClusterPrefix": {
+			"value": "changeme"
+		},
+		"dataDiskSize": {
+			"value": 128
+		},
+		"adminUsername": {
+			"value": "changeme"
+		},
+		"rhsmUsernamePasswordOrActivationKey": {
+			"value": "password"
+		},
+		"rhsmUsernameOrOrgId": {
+			"value": "changeme"
+		},
+		"rhsmPasswordOrActivationKey": {
+			"value": "changeme"
+		},
+		"rhsmPoolId": {
+			"value": "changeme"
+		},
+		"sshPublicKey": {
+			"value": "GEN-SSH-PUB-KEY"
+		}
+	}
+}
