@@ -8,8 +8,8 @@ This template deploys OpenShift Container Platform with basic username / passwor
 |Master Load Balancer	|2 probes and 2 rules for TCP 8443 and TCP 9090 <br/> NAT rules for SSH on Ports 2200-220X                                           |
 |Infra Load Balancer	|3 probes and 3 rules for TCP 80, TCP 443 and TCP 9090 									                                             |
 |Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
-|Storage Accounts   	|1 Storage Account for Master, Infra, Bastion and Load Balancer VMs<br />2 Storage Accounts for Node VMs<br />1 Storage Account for Private Docker Registry                                                                                                                |
-|Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1 Load Balancer Node to do internal load balancing to the masters<br />1 or 3 Masters. First Master is used to run a NFS server to provide persistent storage.<br />1, 2, or 3 Infra nodes<br />User-defined number of nodes (1 to 30)<br />All VMs include a single attached data disk for Docker thin pool logical volume|
+|Storage Accounts   	|1 Storage Account for Master, and Bastion VMs<br />1 Storage Account for Infra VMs<br />2 Storage Accounts for Node VMs<br />1 Storage Account for Private Docker Registry  |
+|Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1, 2, or 3 Masters. First Master is used to run a NFS server to provide persistent storage.<br />1, 2, or 3 Infra nodes<br />User-defined number of nodes (1 to 30)<br />All VMs include a single attached data disk for Docker thin pool logical volume|
 
 ![Cluster Diagram](images/openshiftdiagram.jpg)
 
@@ -68,7 +68,7 @@ You will also need to get the Pool ID that contains your entitlements for OpenSh
 2.  masterVmSize: Size of the Master VM. Select from one of the allowed VM sizes listed in the azuredeploy.json file
 3.  nodeVmSize: Size of the Node VM. Select from one of the allowed VM sizes listed in the azuredeploy.json file
 3.  infraVmSize: Size of the Infra VM. Select from one of the allowed VM sizes listed in the azuredeploy.json file
-4.  openshiftClusterPrefix: Cluster Prefix used to configure hostnames for all nodes - bastion, master, infra and nodes. Between 1 and 5 characters for Commercial Azure and between 1 and 3 characters for Azure Government.
+4.  openshiftClusterPrefix: Cluster Prefix used to configure hostnames for all nodes - bastion, master, infra and nodes. Between 1 and 20 characters.
 5.  openshiftMasterPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Master Node by
 6.  infraLbPublicIpDnsLabel: A unique Public DNS host name (not FQDN) to reference the Node Load Balancer by.  Used to access deployed applications
 7.  masterInstanceCount: Number of Masters nodes to deploy

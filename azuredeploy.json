@@ -98,7 +98,7 @@
 			"type": "string",
 			"defaultValue": "aacl",
 			"minLength": 1,
-			"maxLength": 5,
+			"maxLength": 10,
 			"metadata": {
 				"description": "OpenShift cluster prefix.  Used to generate master, infra and node hostnames.  Maximum of 5 characters."
 			}
@@ -275,15 +275,15 @@
 		"apiVersionStorage": "2015-06-15",
 		"apiVersionLinkTemplate": "2015-01-01",
 		"namingInfix": "[toLower(parameters('openshiftClusterPrefix'))]",
-		"openshiftBastionHostname": "[concat(variables('namingInfix'), 'b')]",
-		"openshiftMasterHostname": "[concat(variables('namingInfix'), 'm')]",
-		"openshiftNodeHostname": "[concat(variables('namingInfix'), 'n')]",
-		"openshiftInfraHostname": "[concat(variables('namingInfix'), 'i')]",
-		"openshiftLoadBalancerHostname": "[concat(variables('namingInfix'), 'l')]",
-		"newStorageAccountMaster": "[concat(uniqueString(concat(resourceGroup().id, 'msa', '0')), 'msa')]",
-		"newStorageAccountNodeOs": "[concat(uniqueString(concat(resourceGroup().id, 'nossa', '1')), 'nsao')]",
-		"newStorageAccountNodeData": "[concat(uniqueString(concat(resourceGroup().id, 'ndatasa', '2')), 'nsad')]",
-		"newStorageAccountRegistry": "[concat(uniqueString(concat(resourceGroup().id, 'registry')), 'reg')]",
+		"openshiftBastionHostname": "[concat(variables('namingInfix'), '-bastion')]",
+		"openshiftMasterHostname": "[concat(variables('namingInfix'), '-master')]",
+		"openshiftNodeHostname": "[concat(variables('namingInfix'), '-node')]",
+		"openshiftInfraHostname": "[concat(variables('namingInfix'), '-infra')]",
+		"newStorageAccountMaster": "[concat('master', uniqueString(concat(resourceGroup().id, 'msa')))]",
+		"newStorageAccountInfra": "[concat('infra', uniqueString(concat(resourceGroup().id, 'msa')))]",
+		"newStorageAccountNodeOs": "[concat('nodeos', uniqueString(concat(resourceGroup().id, 'nodeossa')))]",
+		"newStorageAccountNodeData": "[concat('nodedata', uniqueString(concat(resourceGroup().id, 'nodedatasa')))]",
+		"newStorageAccountRegistry": "[concat('registry', uniqueString(concat(resourceGroup().id, 'registry')))]",
 		"addressPrefix": "10.0.0.0/8",
 		"masterSubnetPrefix": "10.1.0.0/16",
 		"nodeSubnetPrefix": "10.2.0.0/16",
@@ -518,27 +518,6 @@
 		}, {
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"type": "Microsoft.Network/networkSecurityGroups",
-			"name": "[concat(variables('openshiftLoadBalancerHostname'), '-nsg')]",
-			"location": "[variables('location')]",
-			"properties": {
-				"securityRules": [{
-					"name": "allowSSHin_all",
-					"properties": {
-						"description": "Allow SSH in from all locations",
-						"protocol": "Tcp",
-						"sourcePortRange": "*",
-						"destinationPortRange": "22",
-						"sourceAddressPrefix": "*",
-						"destinationAddressPrefix": "*",
-						"access": "Allow",
-						"priority": 100,
-						"direction": "Inbound"
-					}
-				}]
-			}
-		}, {
-			"apiVersion": "[variables('apiVersionNetwork')]",
-			"type": "Microsoft.Network/networkSecurityGroups",
 			"name": "[concat(variables('openshiftMasterHostname'), '-nsg')]",
 			"location": "[variables('location')]",
 			"properties": {
@@ -752,6 +731,17 @@
 			},
 			"properties": {
 				"accountType": "[variables('vmSizesMap')[parameters('masterVmSize')].storageAccountType]"
+			}
+		}, {
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[variables('newStorageAccountInfra')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionStorage')]",
+			"tags": {
+				"displayName": "InfraStorageAccount"
+			},
+			"properties": {
+				"accountType": "[variables('vmSizesMap')[parameters('infraVmSize')].storageAccountType]"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -1071,33 +1061,7 @@
 					"id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('openshiftBastionHostname'), '-nsg'))]"
 				}
 			}
-		},  {
-			"type": "Microsoft.Network/networkInterfaces",
-			"name": "[concat(variables('openshiftLoadBalancerHostname'), '-nic')]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionNetwork')]",
-			"tags": {
-				"displayName": "OpenShiftLoadBalancerNetworkInterface"
-			},
-			"dependsOn": [
-				"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-				"[concat('Microsoft.Network/networkSecurityGroups/', variables('openshiftLoadBalancerHostname'), '-nsg')]"
-			],
-			"properties": {
-				"ipConfigurations": [{
-					"name": "[concat(variables('openshiftLoadBalancerHostname'), 'ipconfig')]",
-					"properties": {
-						"privateIPAllocationMethod": "Dynamic",
-						"subnet": {
-							"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('masterSubnetName'))]"
-						}
-					}
-				}],
-				"networkSecurityGroup": {
-					"id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('openshiftLoadBalancerHostname'), '-nsg'))]"
-				}
-			}
-		},{
+		}, {
 			"type": "Microsoft.Network/networkInterfaces",
 			"name": "[concat(variables('openshiftMasterHostname'), '-', copyIndex(), 'nic')]",
 			"location": "[variables('location')]",
@@ -1252,56 +1216,6 @@
 				}
 			}
 		}, {
-			"name": "loadBalancerVmDeployment",
-			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "[variables('apiVersionLinkTemplate')]",
-			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
-				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftLoadBalancerHostname'), '-nic')]"
-			],
-			"properties": {
-				"mode": "Incremental",
-				"templateLink": {
-					"uri": "[variables('basicDeploymentTemplateUrl')]",
-					"contentVersion": "1.0.0.0"
-				},
-				"parameters": {
-					"location": {
-						"value": "[variables('location')]"
-					},
-					"sshKeyPath": {
-						"value": "[variables('sshKeyPath')]"
-					},
-					"sshPublicKey": {
-						"value": "[parameters('sshPublicKey')]"
-					},
-					"adminUsername": {
-						"value": "[parameters('adminUsername')]"
-					},
-					"vmSize": {
-						"value": "[parameters('masterVmSize')]"
-					},
-					"hostname": {
-						"value": "[variables('openshiftLoadBalancerHostname')]"
-					},
-					"customImageName": {
-						"value": "[variables('customImageName')]"
-					},
-					"newStorageAccount": {
-						"value": "[variables('newStorageAccountMaster')]"
-					},
-					"customStorageAccount": {
-						"value": "[parameters('customStorageAccount')]"
-					},
-					"apiVersionStorage": {
-						"value": "[variables('apiVersionStorage')]"
-					},
-					"apiVersionCompute": {
-						"value": "[variables('apiVersionCompute')]"
-					}
-				}
-			}
-		}, {
 			"name": "[concat('masterVmDeployment', copyindex())]",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
@@ -1367,7 +1281,7 @@
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountInfra'))]",
 				"infraNicLoop",
 				"infraavailabilityset"
 			],
@@ -1410,7 +1324,7 @@
 						"value": "[variables('customImageName')]"
 					},
 					"newStorageAccount": {
-						"value": "[variables('newStorageAccountMaster')]"
+						"value": "[variables('newStorageAccountInfra')]"
 					},
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
@@ -1460,7 +1374,7 @@
 						"value": "[parameters('adminUsername')]"
 					},
 					"vmSize": {
-						"value": "[parameters('infraVmSize')]"
+						"value": "[parameters('nodeVmSize')]"
 					},
 					"availabilitySet": {
 						"value": "nodeavailabilityset"
@@ -1511,31 +1425,6 @@
 				},
 				"protectedSettings": {
 					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ',variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
-				}
-			}
-		}, {
-			"type": "Microsoft.Compute/virtualMachines/extensions",
-			"name": "[concat(variables('openshiftLoadBalancerHostname'), '/prepNodes')]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionCompute')]",
-			"tags": {
-				"displayName": "PrepLoadBalancer"
-			},
-			"dependsOn": [
-				"loadBalancerVmDeployment"
-			],
-			"properties": {
-				"publisher": "Microsoft.Azure.Extensions",
-				"type": "CustomScript",
-				"typeHandlerVersion": "2.0",
-				"autoUpgradeMinorVersion": true,
-				"settings": {
-					"fileUris": [
-						"[variables('loadBalancerPrepScriptUrl')]"
-					]
-				},
-				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('loadBalancerPrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
 		}, {
@@ -1671,9 +1560,6 @@
 					"openshiftNodeHostname": {
 						"value": "[variables('openshiftNodeHostname')]"
 					},
-					"openshiftLoadBalancerHostname": {
-						"value": "[variables('openshiftLoadBalancerHostname')]"
-					},
 					"masterInstanceCount": {
 						"value": "[parameters('masterInstanceCount')]"
 					},
@@ -1717,17 +1603,25 @@
 		}
 	],
 	"outputs": {
-		"openshiftConsoleUrl": {
+		"Openshift Console Url": {
 			"type": "string",
 			"value": "[concat('https://', reference(parameters('openshiftMasterPublicIpDnsLabel')).dnsSettings.fqdn, ':8443/console')]"
 		},
-		"openshiftMasterSsh": {
+		"Openshift Master SSH": {
 			"type": "string",
 			"value": "[concat('ssh ', parameters('adminUsername'), '@', reference(parameters('openshiftMasterPublicIpDnsLabel')).dnsSettings.fqdn, ' -p 2200')]"
 		},
-		"openshiftInfraLoadBalancerFQDN": {
+		"Openshift Infra Load Balancer FQDN": {
 			"type": "string",
 			"value": "[reference(parameters('infraLbPublicIpDnsLabel')).dnsSettings.fqdn]"
+		},
+		"Node OS Storage Account Name": {
+			"type": "string",
+			"value": "[variables('newStorageAccountNodeOs')]"
+		},
+		"Node Data Storage Account Name": {
+			"type": "string",
+			"value": "[variables('newStorageAccountNodeData')]"
 		}
 	}
 }

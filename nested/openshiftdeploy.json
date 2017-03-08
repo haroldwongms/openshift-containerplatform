@@ -70,13 +70,6 @@
 				"description": "OpenShift Node hostname"
 			}
 		},
-		"openshiftLoadBalancerHostname": {
-			"type": "string",
-			"minLength": 1,
-			"metadata": {
-				"description": "OpenShift Load Balancer hostname"
-			}
-		},
 		"masterInstanceCount": {
 			"type": "int",
 			"minValue": 1,
@@ -176,7 +169,7 @@
 				]
 			},
 			"protectedSettings": {
-				"commandToExecute": "[concat('bash ', variables('openshiftDeploymentScriptFileName'), ' \"', parameters('adminUsername'), '\" ', variables('singlequote'), parameters('openshiftPassword'), variables('singlequote'), ' \"', parameters('sshPrivateKey'), '\" \"', parameters('openshiftMasterHostname'), '\" \"', parameters('openshiftMasterPublicIpFqdn'), '\" \"', parameters('openshiftMasterPublicIpAddress'), '\" \"', parameters('openshiftInfraHostname'), '\" \"', parameters('openshiftNodeHostname'), '\" \"', parameters('openshiftLoadBalancerHostname'), '\" \"', parameters('nodeInstanceCount'), '\" \"', parameters('infraInstanceCount'), '\" \"', parameters('MasterInstanceCount'), '\" \"', parameters(parameters('subDomainChosen')), '\" \"', parameters('newStorageAccountRegistry'), '\" ', variables('singlequote'), parameters('newStorageAccountKey'), variables('singlequote'), ' \"', parameters('enableMetrics'), '\" \"', parameters('enableLogging'), '\"')]"
+				"commandToExecute": "[concat('bash ', variables('openshiftDeploymentScriptFileName'), ' \"', parameters('adminUsername'), '\" ', variables('singlequote'), parameters('openshiftPassword'), variables('singlequote'), ' \"', parameters('sshPrivateKey'), '\" \"', parameters('openshiftMasterHostname'), '\" \"', parameters('openshiftMasterPublicIpFqdn'), '\" \"', parameters('openshiftMasterPublicIpAddress'), '\" \"', parameters('openshiftInfraHostname'), '\" \"', parameters('openshiftNodeHostname'), '\" \"', parameters('nodeInstanceCount'), '\" \"', parameters('infraInstanceCount'), '\" \"', parameters('MasterInstanceCount'), '\" \"', parameters(parameters('subDomainChosen')), '\" \"', parameters('newStorageAccountRegistry'), '\" ', variables('singlequote'), parameters('newStorageAccountKey'), variables('singlequote'), ' \"', parameters('enableMetrics'), '\" \"', parameters('enableLogging'), '\"')]"
 			}
 		}
 	}],
