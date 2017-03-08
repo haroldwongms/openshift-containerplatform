@@ -224,14 +224,6 @@ openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
 # Enable HTPasswdPasswordIdentityProvider
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
-# Configure persistent storage via nfs server on master
-# openshift_hosted_registry_storage_kind=nfs
-# openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-# openshift_hosted_registry_storage_host=$MASTER-0
-# openshift_hosted_registry_storage_nfs_directory=/exports
-# openshift_hosted_registry_storage_volume_name=registry
-# openshift_hosted_registry_storage_volume_size=5Gi
-
 # Setup metrics
 openshift_hosted_metrics_deploy=$METRICS
 # As of this writing, there's a bug in the metrics deployment.
