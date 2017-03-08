@@ -12,24 +12,20 @@ MASTERPUBLICIPHOSTNAME=$5
 MASTERPUBLICIPADDRESS=$6
 INFRA=$7
 NODE=$8
-LB=$9
-NODECOUNT=${10}
-INFRACOUNT=${11}
-MASTERCOUNT=${12}
-ROUTING=${13}
-REGISTRYSA=${14}
-ACCOUNTKEY="${15}"
-METRICS=${16}
-LOGGING=${17}
-
+NODECOUNT=$9
+INFRACOUNT=${10}
+MASTERCOUNT=${11}
+ROUTING=${12}
+REGISTRYSA=${13}
+ACCOUNTKEY="${14}"
+METRICS=${15}
+LOGGING=${16}
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 INFRALOOP=$((INFRACOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
 
-DOMAIN=$( awk 'NR==2' /etc/resolv.conf | awk '{ print $2 }' )
-
-echo $PASSWORD
+#DOMAIN=$( awk 'NR==2' /etc/resolv.conf | awk '{ print $2 }' )
 
 # Generate private keys for use by Ansible
 echo $(date) " - Generating Private keys for use by Ansible for OpenShift Installation"
@@ -132,21 +128,20 @@ openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+#console_port=8443
+#openshift_cloudprovider_kind=azure
+osm_default_node_selector="type=app"
+
+# default selectors for router and registry services
+openshift_router_selector='type=infra'
+openshift_registry_selector='type=infra'
 
 openshift_master_cluster_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
-#openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
+openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
 
 # Enable HTPasswdPasswordIdentityProvider
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
-
-# Configure persistent storage via nfs server on master
-# openshift_hosted_registry_storage_kind=nfs
-# openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-# openshift_hosted_registry_storage_host=$MASTER-0.$DOMAIN
-# openshift_hosted_registry_storage_nfs_directory=/exports
-# openshift_hosted_registry_storage_volume_name=registry
-# openshift_hosted_registry_storage_volume_size=5Gi
 
 # Setup metrics
 openshift_hosted_metrics_deploy=$METRICS
@@ -179,16 +174,16 @@ $MASTER-0
 
 # host group for nodes
 [nodes]
-$MASTER-0 openshift_node_labels="{'region': 'master', 'zone': 'default'}" openshift_hostname=$MASTER-0
+$MASTER-0 openshift_node_labels="{'type': 'master', 'zone': 'default'}" openshift_hostname=$MASTER-0
 EOF
 
 for (( c=0; c<$INFRACOUNT; c++ ))
 do
-  echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
+  echo "$INFRA-$c openshift_node_labels=\"{'type': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
 done
 for (( c=0; c<$NODECOUNT; c++ ))
 do
-  echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
+  echo "$NODE-$c openshift_node_labels=\"{'type': 'app', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
 done
 
 else
@@ -200,7 +195,6 @@ masters
 nodes
 etcd
 nfs
-lb
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -214,11 +208,18 @@ openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+#console_port=8443
+#openshift_cloudprovider_kind=azure
+osm_default_node_selector="type=app"
+
+# default selectors for router and registry services
+openshift_router_selector='type=infra'
+openshift_registry_selector='type=infra'
 
 openshift_master_cluster_method=native
-openshift_master_cluster_hostname=$LB
+openshift_master_cluster_hostname=$MASTERPUBLICIPHOSTNAME
 openshift_master_cluster_public_hostname=$MASTERPUBLICIPHOSTNAME
-#openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
+openshift_master_cluster_public_vip=$MASTERPUBLICIPADDRESS
 
 # Enable HTPasswdPasswordIdentityProvider
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
@@ -264,24 +265,21 @@ $MASTER-[0:${MASTERLOOP}]
 [nfs]
 $MASTER-0
 
-[lb]
-$LB 
-
 # host group for nodes
 [nodes]
 EOF
 
 for (( c=0; c<$MASTERCOUNT; c++ ))
 do
-  echo "$MASTER-$c openshift_node_labels=\"{'region': 'master', 'zone': 'default'}\" openshift_hostname=$MASTER-$c" >> /etc/ansible/hosts
+  echo "$MASTER-$c openshift_node_labels=\"{'type': 'master', 'zone': 'default'}\" openshift_hostname=$MASTER-$c" >> /etc/ansible/hosts
 done
 for (( c=0; c<$INFRACOUNT; c++ ))
 do
-  echo "$INFRA-$c openshift_node_labels=\"{'region': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
+  echo "$INFRA-$c openshift_node_labels=\"{'type': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
 done
 for (( c=0; c<$NODECOUNT; c++ ))
 do
-  echo "$NODE-$c openshift_node_labels=\"{'region': 'nodes', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
+  echo "$NODE-$c openshift_node_labels=\"{'type': 'nodes', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
 done
 
 fi
@@ -297,10 +295,10 @@ sed -i -e "s/Defaults    requiretty/# Defaults    requiretty/" /etc/sudoers
 sed -i -e '/Defaults    env_keep += "LC_TIME LC_ALL LANGUAGE LINGUAS _XKB_CHARSET XAUTHORITY"/aDefaults    env_keep += "PATH"' /etc/sudoers
 
 # Deploying Registry
-echo $(date) "- Registry deployed to infra node"
+echo $(date) "- Registry automatically deployed to infra nodes"
 
 # Deploying Router
-echo $(date) "- Router deployed to infra nodes"
+echo $(date) "- Router automaticaly deployed to infra nodes"
 
 echo $(date) "- Re-enabling requiretty"
 
