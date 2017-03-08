@@ -130,7 +130,7 @@ osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 #console_port=8443
 #openshift_cloudprovider_kind=azure
-osm_default_node_selector="type=app"
+osm_default_node_selector='type=app'
 
 # default selectors for router and registry services
 openshift_router_selector='type=infra'
@@ -210,7 +210,7 @@ osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 #console_port=8443
 #openshift_cloudprovider_kind=azure
-osm_default_node_selector="type=app"
+osm_default_node_selector='type=app'
 
 # default selectors for router and registry services
 openshift_router_selector='type=infra'
@@ -279,7 +279,7 @@ do
 done
 for (( c=0; c<$NODECOUNT; c++ ))
 do
-  echo "$NODE-$c openshift_node_labels=\"{'type': 'nodes', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
+  echo "$NODE-$c openshift_node_labels=\"{'type': 'app', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
 done
 
 fi
