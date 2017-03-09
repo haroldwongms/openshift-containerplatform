@@ -20,6 +20,12 @@ REGISTRYSA=${13}
 ACCOUNTKEY="${14}"
 METRICS=${15}
 LOGGING=${16}
+TENANTID=${17}
+SUBSCRIPTIONID=${18}
+AADCLIENTID=${19}
+AADCLIENTSECRET="${20}"
+RESOURCEGROUP=${21}
+LOCATION=${22}
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 INFRALOOP=$((INFRACOUNT - 1))
@@ -44,8 +50,9 @@ sed -i -e "s/^#pty=False/pty=False/" /etc/ansible/ansible.cfg
 # Create Ansible Playbook for Post Installation task
 echo $(date) " - Create Ansible Playbook for Post Installation task"
 
-# Run on all masters
-cat > /home/${SUDOUSER}/postinstall.yml <<EOF
+# Run on all masters - Create Inital OpenShift User on all Masters
+
+cat > /home/${SUDOUSER}/postinstall1.yml <<EOF
 ---
 - hosts: masters
   remote_user: ${SUDOUSER}
@@ -60,7 +67,8 @@ cat > /home/${SUDOUSER}/postinstall.yml <<EOF
     shell: htpasswd -cb /etc/origin/master/htpasswd ${SUDOUSER} "${PASSWORD}"
 EOF
 
-# Run on only MASTER-0
+# Run on only MASTER-0 - Make initial OpenShift User a Cluster Admin
+
 cat > /home/${SUDOUSER}/postinstall2.yml <<EOF
 ---
 - hosts: nfs
@@ -74,7 +82,8 @@ cat > /home/${SUDOUSER}/postinstall2.yml <<EOF
     shell: oadm policy add-cluster-role-to-user cluster-admin $SUDOUSER --config=/etc/origin/master/admin.kubeconfig
 EOF
 
-# Run on all nodes
+# Run on all nodes - Set Root password on all nodes
+
 cat > /home/${SUDOUSER}/postinstall3.yml <<EOF
 ---
 - hosts: nodes
@@ -89,6 +98,7 @@ cat > /home/${SUDOUSER}/postinstall3.yml <<EOF
 EOF
 
 # Run on MASTER-0 node - configure registry to use Azure Storage
+
 cat > /home/${SUDOUSER}/postinstall4.yml <<EOF
 ---
 - hosts: nfs
@@ -102,6 +112,20 @@ cat > /home/${SUDOUSER}/postinstall4.yml <<EOF
     shell: oc env dc docker-registry -e REGISTRY_STORAGE=azure -e REGISTRY_STORAGE_AZURE_ACCOUNTNAME=$REGISTRYSA -e REGISTRY_STORAGE_AZURE_ACCOUNTKEY=$ACCOUNTKEY -e REGISTRY_STORAGE_AZURE_CONTAINER=registry
 EOF
 
+# Create azure.conf file
+
+cat > /home/${SUDOUSER}/azure.conf <<EOF
+
+{
+   "tenantId": "$TENANTID",
+   "subscriptionId": "$SUBSCRIPTIONID",
+   "aadClientId": "$AADCLIENTID",
+   "aadClientSecret": "$AADCLIENTSECRET",
+   "aadTenantID": "$TENANTID",
+   "resourceGroup": "$RESOURCEGROUP",
+   "location": "$LOCATION",
+}
+EOF
 
 # Create Ansible Hosts File
 echo $(date) " - Create Ansible Hosts file"
@@ -115,6 +139,7 @@ cat > /etc/ansible/hosts <<EOF
 masters
 nodes
 nfs
+new_nodes
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -129,7 +154,7 @@ openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 #console_port=8443
-#openshift_cloudprovider_kind=azure
+openshift_cloudprovider_kind=azure
 osm_default_node_selector='type=app'
 
 # default selectors for router and registry services
@@ -177,6 +202,28 @@ $MASTER-0
 $MASTER-0 openshift_node_labels="{'type': 'master', 'zone': 'default'}" openshift_hostname=$MASTER-0
 EOF
 
+# Loop to add Infra Nodes
+
+for (( c=0; c<$INFRACOUNT; c++ ))
+do
+  echo "$INFRA-$c openshift_node_labels=\"{'type': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
+done
+
+# Loop to add Nodes
+
+for (( c=0; c<$NODECOUNT; c++ ))
+do
+  echo "$NODE-$c openshift_node_labels=\"{'type': 'app', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
+done
+
+# Create new_nodes group
+
+cat >> /etc/ansible/hosts <<EOF
+
+# host group for adding new nodes
+[new_nodes]
+EOF
+
 for (( c=0; c<$INFRACOUNT; c++ ))
 do
   echo "$INFRA-$c openshift_node_labels=\"{'type': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
@@ -195,6 +242,7 @@ masters
 nodes
 etcd
 nfs
+new_nodes
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -209,7 +257,7 @@ openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 #console_port=8443
-#openshift_cloudprovider_kind=azure
+openshift_cloudprovider_kind=azure
 osm_default_node_selector='type=app'
 
 # default selectors for router and registry services
@@ -261,6 +309,35 @@ $MASTER-0
 [nodes]
 EOF
 
+# Loop to add Masters
+
+for (( c=0; c<$MASTERCOUNT; c++ ))
+do
+  echo "$MASTER-$c openshift_node_labels=\"{'type': 'master', 'zone': 'default'}\" openshift_hostname=$MASTER-$c" >> /etc/ansible/hosts
+done
+
+# Loop to add Infra Nodes
+
+for (( c=0; c<$INFRACOUNT; c++ ))
+do
+  echo "$INFRA-$c openshift_node_labels=\"{'type': 'infra', 'zone': 'default'}\" openshift_hostname=$INFRA-$c" >> /etc/ansible/hosts
+done
+
+# Loop to add Nodes
+
+for (( c=0; c<$NODECOUNT; c++ ))
+do
+  echo "$NODE-$c openshift_node_labels=\"{'type': 'app', 'zone': 'default'}\" openshift_hostname=$NODE-$c" >> /etc/ansible/hosts
+done
+
+# Create new_nodes group
+
+cat >> /etc/ansible/hosts <<EOF
+
+# host group for adding new nodes
+[new_nodes]
+EOF
+
 for (( c=0; c<$MASTERCOUNT; c++ ))
 do
   echo "$MASTER-$c openshift_node_labels=\"{'type': 'master', 'zone': 'default'}\" openshift_hostname=$MASTER-$c" >> /etc/ansible/hosts
@@ -299,7 +376,7 @@ sed -i -e "s/# Defaults    requiretty/Defaults    requiretty/" /etc/sudoers
 # Adding user to OpenShift authentication file
 echo $(date) "- Adding OpenShift user"
 
-runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall.yml"
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall1.yml"
 
 # Assigning cluster admin rights to OpenShift user
 echo $(date) "- Assigning cluster admin rights to user"
@@ -318,7 +395,8 @@ runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall4.yml"
 
 # Delete postinstall.yml file
 echo $(date) "- Deleting unecessary file"
-rm /home/${SUDOUSER}/postinstall.yml
+
+rm /home/${SUDOUSER}/postinstall1.yml
 rm /home/${SUDOUSER}/postinstall2.yml
 rm /home/${SUDOUSER}/postinstall3.yml
 rm /home/${SUDOUSER}/postinstall4.yml
