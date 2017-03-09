@@ -114,6 +114,8 @@ EOF
 
 # Create azure.conf file
 
+mkdir /etc/azure
+
 cat > /etc/azure/azure.conf <<EOF
 
 {
