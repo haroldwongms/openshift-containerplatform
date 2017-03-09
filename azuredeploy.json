@@ -98,7 +98,7 @@
 			"type": "string",
 			"defaultValue": "aacl",
 			"minLength": 1,
-			"maxLength": 10,
+			"maxLength": 20,
 			"metadata": {
 				"description": "OpenShift cluster prefix.  Used to generate master, infra and node hostnames.  Maximum of 5 characters."
 			}
@@ -257,7 +257,7 @@
 			}
 		},
 		"aadClientSecret": {
-			"type": "string",
+			"type": "securestring",
 			"minLength": 1,
 			"metadata": {
 				"description": "Azure AD Client Secret"
