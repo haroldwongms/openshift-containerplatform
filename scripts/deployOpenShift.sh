@@ -114,9 +114,7 @@ EOF
 
 # Create azure.conf file
 
-mkdir /etc/azure
-
-cat > /etc/azure/azure.conf <<EOF
+cat > /home/${SUDOUSER}/azure.conf <<EOF
 
 {
    "tenantId": "$TENANTID",
@@ -128,7 +126,6 @@ cat > /etc/azure/azure.conf <<EOF
    "location": "$LOCATION",
 }
 EOF
-
 
 # Create Ansible Hosts File
 echo $(date) " - Create Ansible Hosts file"
