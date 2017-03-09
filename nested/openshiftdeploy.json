@@ -164,7 +164,7 @@
 		"tenantId": "[subscription().tenantId]",
 		"subscriptionId": "[subscription().subscriptionId]",
 		"location": "[resourceGroup().location]",
-		"resourceGroupName": "[resourceGroup().id]",
+		"resourceGroupName": "[resourceGroup().name]",
 		"openshiftDeploymentScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/deployOpenShift.sh')]",
 		"openshiftDeploymentScriptFileName": "deployOpenShift.sh"
 	},
