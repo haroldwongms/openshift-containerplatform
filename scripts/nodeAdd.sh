@@ -4,8 +4,8 @@ echo $(date) " - Starting Script"
 
 set -e
 
-$NODE=$1
-$SUDOUSER=$2
+NODE=$1
+SUDOUSER=$2
 
 # Create playbook to update hosts file
 
