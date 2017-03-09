@@ -16,11 +16,11 @@ cat > updatehosts.yaml <<EOF
   gather_facts: no
   tasks:
   - lineinfile:
-      dest: /etc/ansible/hosts
-      insertafter: '[new_nodes]'
-      line: "${NODE} openshift_node_labels=\"{'type': 'app', 'zone': 'default'}\" openshift_hostname=${NODE}"
-      regexp: '^${NODE} '
-      state: present
+    dest: /etc/ansible/hosts
+    insertafter: '[new_nodes]'
+    line: "$NODE openshift_node_labels=\"{'type': 'app', 'zone': 'default'}\" openshift_hostname=$NODE"
+    regexp: '^$NODE '
+    state: present
 EOF
 
 # Run Ansible Playbook to update Hosts file
