@@ -90,5 +90,7 @@ fi
 systemctl enable docker
 systemctl start docker
 
+mkdir /etc/azure
+
 echo $(date) " - Script Complete"
 

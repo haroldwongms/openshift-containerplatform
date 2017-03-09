@@ -125,6 +125,6 @@ then
    chmod a+rwx /exports -R  
 fi
 
-
+mkdir /etc/azure
 
 echo $(date) " - Script Complete"
