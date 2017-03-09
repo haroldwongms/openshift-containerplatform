@@ -1,0 +1,486 @@
+﻿{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"_artifactsLocation": {
+			"type": "string",
+			"metadata": {
+				"description": "Base URL for Template Files",
+				"artifactsBaseUrl": ""
+			},
+			"defaultValue": "https://raw.githubusercontent.com/haroldwongms/openshift-containerplatform/master/"
+		},
+		"customVhdOrGallery": {
+			"type": "string",
+			"defaultValue": "gallery",
+			"allowedValues": [
+				"custom", "gallery"
+			],
+			"metadata": {
+				"description": "Custom VHD Image or RHEL Gallery Image"
+			}
+		},
+		"customStorageAccount": {
+			"type": "string",
+			"defaultValue": "https://osdiskstorageaccount.blob.core.windows.net/",
+			"metadata": {
+				"description": "Storage account that contains the custom OS Disk.  This is the full URL of the Storage Account. Include the ending /"
+			}
+		},
+		"customOsDiskName": {
+			"type": "string",
+			"defaultValue": "images/customosdisk.vhd",
+			"metadata": {
+				"description": "The name of the custom OS Disk and the folder it is located in."
+			}
+		},
+		"StorageAccountInfra": {
+			"type": "string",
+			"defaultValue": "infrastorage",
+			"metadata": {
+				"description": "Storage account that contains the Infra OS Disk."
+			}
+		},
+		"infraVmSize": {
+			"type": "string",
+			"defaultValue": "Standard_DS2_v2",
+			"allowedValues": [
+				"Standard_A4", "Standard_A5", "Standard_A6", "Standard_A7", "Standard_A8", "Standard_A9", "Standard_A10", "Standard_A11",
+				"Standard_D2", "Standard_D3", "Standard_D4",
+				"Standard_D11", "Standard_D12", "Standard_D13", "Standard_D14",
+				"Standard_D2_v2", "Standard_D3_v2", "Standard_D4_v2", "Standard_D5_v2",
+				"Standard_D11_v2", "Standard_D12_v2", "Standard_D13_v2", "Standard_D14_v2",
+				"Standard_G1", "Standard_G2", "Standard_G3", "Standard_G4", "Standard_G5",
+				"Standard_DS2", "Standard_DS3", "Standard_DS4",
+				"Standard_DS11", "Standard_DS12", "Standard_DS13", "Standard_DS14",
+				"Standard_DS2_v2", "Standard_DS3_v2", "Standard_DS4_v2", "Standard_DS5_v2",
+				"Standard_DS11_v2", "Standard_DS12_v2", "Standard_DS13_v2", "Standard_DS14_v2",
+				"Standard_GS1", "Standard_GS2", "Standard_GS3", "Standard_GS4", "Standard_GS5"
+			],
+			"metadata": {
+				"description": "OpenShift Node VM(s) size"
+			}
+		},
+		"infraSuffix" : {
+			"type": "int",
+			"defaultValue": 2,
+			"minValue": 1,
+			"allowedValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+			"metadata": {
+				"description": "Suffix for next Infra"
+			}
+		},
+		"openshiftClusterPrefix": {
+			"type": "string",
+			"defaultValue": "aacl",
+			"minLength": 1,
+			"maxLength": 20,
+			"metadata": {
+				"description": "OpenShift cluster prefix.  Used to generate master, infra and node hostnames.  Maximum of 5 characters."
+			}
+		},
+		"dataDiskSize": {
+			"type": "int",
+			"defaultValue": 128,
+			"minValue": 1,
+			"allowedValues": [128, 512, 1023],
+			"metadata": {
+				"description": "Size of Datadisk in GB for Docker volume"
+			}
+		},
+		"adminUsername": {
+			"type": "string",
+			"defaultValue": "ocpadmin",
+			"minLength": 1,
+			"metadata": {
+				"description": "Administrator username on all VMs and first user created for OpenShift login"
+			}
+		},
+		"rhsmUsernamePasswordOrActivationKey": {
+			"type": "string",
+			"minLength": 1,
+			"defaultValue": "usernamepassword",
+			"allowedValues": [
+				"usernamepassword", "activationkey"
+			],
+			"metadata": {
+				"description": "Select whether you want to use your Red Hat Subscription Manager Username and Password or Organization ID and Activation Key to register the RHEL instance to your Red Hat Subscription."
+			}
+		},
+		"rhsmUsernameOrOrgId": {
+			"type": "securestring",
+			"minLength": 1,
+			"metadata": {
+				"description": "Red Hat Subscription Manager Username or Organization ID. If usernamepassword selected in previous input, then use Username; otherwise entier Organization ID. To find your Organization ID, run on registered server: subscription-manager identity"
+			}
+		},
+		"rhsmPasswordOrActivationKey": {
+			"type": "securestring",
+			"minLength": 1,
+			"metadata": {
+				"description": "Red Hat Subscription Manager Password or Activation Key. To find or create your Activation Key, go to: https://access.redhat.com/management/activation_keys"
+			}
+		},
+		"rhsmPoolId": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Red Hat Subscription Manager Pool ID with OpenShift entitlements. To find it, run on registered server: subscription-manager list"
+			}
+		},
+		"sshPublicKey": {
+			"type": "securestring",
+			"metadata": {
+				"description": "SSH public key for all VMs"
+			}
+		}
+	},
+	"variables": {
+		"location": "[resourceGroup().location]",
+		"resourceGroupName": "[resourceGroup().name]",
+		"apiVersionCompute": "2015-06-15",
+		"apiVersionNetwork": "2016-03-30",
+		"apiVersionStorage": "2015-06-15",
+		"apiVersionLinkTemplate": "2015-01-01",
+		"namingInfix": "[toLower(parameters('openshiftClusterPrefix'))]",
+		"openshiftBastionHostname": "[concat(variables('namingInfix'), '-bastion')]",
+		"openshiftMasterHostname": "[concat(variables('namingInfix'), '-master')]",
+		"openshiftNodeHostname": "[concat(variables('namingInfix'), '-node')]",
+		"openshiftInfraHostname": "[concat(variables('namingInfix'), '-infra')]",
+		"newStorageAccountMaster": "[concat('master', uniqueString(concat(resourceGroup().id, 'msa')))]",
+		"newStorageAccountInfra": "[concat('infra', uniqueString(concat(resourceGroup().id, 'msa')))]",
+		"newStorageAccountNodeOs": "[concat('nodeos', uniqueString(concat(resourceGroup().id, 'nodeossa')))]",
+		"newStorageAccountNodeData": "[concat('nodedata', uniqueString(concat(resourceGroup().id, 'nodedatasa')))]",
+		"newStorageAccountRegistry": "[concat('registry', uniqueString(concat(resourceGroup().id, 'registry')))]",
+		"addressPrefix": "10.0.0.0/8",
+		"masterSubnetPrefix": "10.1.0.0/16",
+		"nodeSubnetPrefix": "10.2.0.0/16",
+		"virtualNetworkName": "openshiftvnet",
+		"masterSubnetName": "mastersubnet",
+		"nodeSubnetName": "nodesubnet",
+		"bastionPublicIp": "bastionpublicip",
+		"infraLoadBalancerName": "[concat(variables('openshiftInfraHostname'), 'lb')]",
+		"osType": {
+			"publisher": "RedHat",
+			"offer": "RHEL",
+			"sku": "7.3",
+			"version": "latest"
+		},
+		"imageReference": "[variables('osType')]",
+		"singlequote": "'",
+		"customImageName": "[concat(parameters('customStorageAccount'), parameters('customOsDiskName'))]",
+		"sshKeyPath": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+		"bastionPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/bastionPrep.sh')]",
+		"loadBalancerPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/loadBalancerPrep.sh')]",
+		"nodePrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/nodePrep.sh')]",
+		"masterPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/masterPrep.sh')]",
+		"infraAddScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/infraAdd.sh')]",
+		"bastionPrepScriptFileName": "bastionPrep.sh",
+		"loadBalancerPrepScriptFileName": "loadBalancerPrep.sh",
+		"nodePrepScriptFileName": "nodePrep.sh",
+		"masterPrepScriptFileName": "masterPrep.sh",
+		"infraAddScriptFileName": "infraAdd.sh",
+
+		"clusterMIDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clustermi.json')]",
+		"clusterNodeDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clusternode.json')]",
+		"basicDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'basic.json')]",
+		"openshiftDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/openshiftdeploy.json')]",
+		"vmSizesMap": {
+			"Standard_A4": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_A5": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_A6": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_A7": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_A8": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_A9": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_A10": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_A11": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D1": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D3": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D4": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D11": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D12": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D13": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D14": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D1_v2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D2_v2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D3_v2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D4_v2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D5_v2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D11_v2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D12_v2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D13_v2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_D14_v2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_G1": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_G2": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_G3": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_G4": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_G5": {
+				"storageAccountType": "Standard_LRS"
+			},
+			"Standard_DS1": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS3": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS4": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS11": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS12": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS13": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS14": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS1_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS2_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS3_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS4_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS5_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS11_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS12_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS13_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS14_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_DS15_v2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_GS1": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_GS2": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_GS3": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_GS4": {
+				"storageAccountType": "Premium_LRS"
+			},
+			"Standard_GS5": {
+				"storageAccountType": "Premium_LRS"
+			}
+		}
+	},
+	"resources": [
+		{
+			"type": "Microsoft.Network/networkInterfaces",
+			"name": "[concat(variables('openshiftInfraHostname'), '-', parameters('infraSuffix'), '-nic')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionNetwork')]",
+			"tags": {
+				"displayName": "OpenShiftInfraNetworkInterfaces"
+			},
+			"properties": {
+				"ipConfigurations": [{
+					"name": "[concat(variables('openshiftInfraHostname'), parameters('infraSuffix'), 'ipconfig')]",
+					"properties": {
+						"privateIPAllocationMethod": "Dynamic",
+						"subnet": {
+							"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('masterSubnetName'))]"
+						},
+						"loadBalancerBackendAddressPools": [{
+							"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/loadBalancers/', variables('infraLoadBalancerName'), '/backendAddressPools/loadBalancerBackEnd')]"
+						}]
+					}
+				}],
+				"networkSecurityGroup": {
+					"id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('openshiftInfraHostname'), '-nsg'))]"
+				}
+			}
+		}, {
+			"name": "[concat('infraVmDeployment', parameters('infraSuffix'))]",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "[variables('apiVersionLinkTemplate')]",
+			"dependsOn": [
+				"[concat(variables('openshiftInfraHostname'), '-', parameters('infraSuffix'), '-nic')]"
+			],
+			"properties": {
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "[variables('clusterMIDeploymentTemplateUrl')]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"location": {
+						"value": "[variables('location')]"
+					},
+					"sshKeyPath": {
+						"value": "[variables('sshKeyPath')]"
+					},
+					"sshPublicKey": {
+						"value": "[parameters('sshPublicKey')]"
+					},
+					"dataDiskSize": {
+						"value": "[parameters('dataDiskSize')]"
+					},
+					"adminUsername": {
+						"value": "[parameters('adminUsername')]"
+					},
+					"vmSize": {
+						"value": "[parameters('infraVmSize')]"
+					},
+					"availabilitySet": {
+						"value": "infraavailabilityset"
+					},
+					"hostname": {
+						"value": "[concat(variables('openshiftInfraHostname'), '-', parameters('infraSuffix'))]"
+					},
+					"customImageName": {
+						"value": "[variables('customImageName')]"
+					},
+					"newStorageAccount": {
+						"value": "[parameters('StorageAccountInfra')]"
+					},
+					"customStorageAccount": {
+						"value": "[parameters('customStorageAccount')]"
+					},
+					"apiVersionStorage": {
+						"value": "[variables('apiVersionStorage')]"
+					},
+					"apiVersionCompute": {
+						"value": "[variables('apiVersionCompute')]"
+					}
+				}
+			}
+		}, {
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"name": "[concat(variables('openshiftInfraHostname'), '-', parameters('infraSuffix'), '/prepNodes')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionCompute')]",
+			"tags": {
+				"displayName": "PrepInfra"
+			},
+			"dependsOn": [
+				"[concat('infraVmDeployment', parameters('infraSuffix'))]"
+			],
+			"properties": {
+				"publisher": "Microsoft.Azure.Extensions",
+				"type": "CustomScript",
+				"typeHandlerVersion": "2.0",
+				"autoUpgradeMinorVersion": true,
+				"settings": {
+					"fileUris": [
+						"[variables('nodePrepScriptUrl')]"
+					]
+				},
+				"protectedSettings": {
+					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
+				}
+			}
+		}, {
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"name": "[concat(variables('openshiftBastionHostname'), '/deployOpenShift')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionCompute')]",
+			"tags": {
+				"displayName": "AddOpenShiftInfra"
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(variables('openshiftInfraHostname'), '-', parameters('infraSuffix')), 'prepNodes')]"
+			],
+			"properties": {
+				"publisher": "Microsoft.Azure.Extensions",
+				"type": "CustomScript",
+				"typeHandlerVersion": "2.0",
+				"autoUpgradeMinorVersion": true,
+				"settings": {
+					"fileUris": [
+						"[variables('infraAddScriptUrl')]"
+					]
+				},
+				"protectedSettings": {
+					"commandToExecute": "[concat('bash ', variables('infraAddScriptFileName'), ' ', concat(variables('openshiftInfraHostname'), '-', parameters('infraSuffix')), ' ', parameters('adminUsername'))]"
+				}
+			}
+		}
+	],
+	"outputs": {
+		
+	}
+}
