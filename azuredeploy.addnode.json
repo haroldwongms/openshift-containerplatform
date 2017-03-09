@@ -72,11 +72,7 @@
 			"type": "int",
 			"defaultValue": 2,
 			"minValue": 1,
-<<<<<<< HEAD
 			"allowedValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
-=======
-			"allowedValues": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
->>>>>>> refs/remotes/origin/master
 			"metadata": {
 				"description": "Suffix for next Node"
 			}
@@ -184,18 +180,13 @@
 		"loadBalancerPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/loadBalancerPrep.sh')]",
 		"nodePrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/nodePrep.sh')]",
 		"masterPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/masterPrep.sh')]",
-<<<<<<< HEAD
 		"nodeAddScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/nodeAdd.sh')]",
-=======
->>>>>>> refs/remotes/origin/master
 		"bastionPrepScriptFileName": "bastionPrep.sh",
 		"loadBalancerPrepScriptFileName": "loadBalancerPrep.sh",
 		"nodePrepScriptFileName": "nodePrep.sh",
 		"masterPrepScriptFileName": "masterPrep.sh",
-<<<<<<< HEAD
 		"nodeAddScriptFileName": "nodeAdd.sh",
-=======
->>>>>>> refs/remotes/origin/master
+
 		"clusterMIDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clustermi.json')]",
 		"clusterNodeDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clusternode.json')]",
 		"basicDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'basic.json')]",
@@ -365,11 +356,7 @@
 	"resources": [
 		{
 			"type": "Microsoft.Network/networkInterfaces",
-<<<<<<< HEAD
 			"name": "[concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix'), '-nic')]",
-=======
-			"name": "[concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix'), 'nic')]",
->>>>>>> refs/remotes/origin/master
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionNetwork')]",
 			"tags": {
@@ -394,11 +381,7 @@
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
-<<<<<<< HEAD
 				"[concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix'), '-nic')]"
-=======
-				"[concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix'), 'nic')]"
->>>>>>> refs/remotes/origin/master
 			],
 			"properties": {
 				"mode": "Incremental",
@@ -476,7 +459,6 @@
 					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
 				}
 			}
-<<<<<<< HEAD
 		}, {
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[concat(variables('openshiftBastionHostname'), '/deployOpenShift')]",
@@ -502,8 +484,6 @@
 					"commandToExecute": "[concat('bash ', variables('nodeAddScriptFileName'), ' ', concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix')), ' ', parameters('adminUsername'))]"
 				}
 			}
-=======
->>>>>>> refs/remotes/origin/master
 		}
 	],
 	"outputs": {

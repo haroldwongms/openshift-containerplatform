@@ -20,15 +20,12 @@ REGISTRYSA=${13}
 ACCOUNTKEY="${14}"
 METRICS=${15}
 LOGGING=${16}
-<<<<<<< HEAD
 TENANTID=${17}
 SUBSCRIPTIONID=${18}
 AADCLIENTID=${19}
 AADCLIENTSECRET="${20}"
 RESOURCEGROUP=${21}
 LOCATION=${22}
-=======
->>>>>>> refs/remotes/origin/master
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 INFRALOOP=$((INFRACOUNT - 1))
@@ -157,11 +154,7 @@ openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 #console_port=8443
-<<<<<<< HEAD
 openshift_cloudprovider_kind=azure
-=======
-#openshift_cloudprovider_kind=azure
->>>>>>> refs/remotes/origin/master
 osm_default_node_selector='type=app'
 
 # default selectors for router and registry services
@@ -207,7 +200,6 @@ $MASTER-0
 # host group for nodes
 [nodes]
 $MASTER-0 openshift_node_labels="{'type': 'master', 'zone': 'default'}" openshift_hostname=$MASTER-0
-<<<<<<< HEAD
 EOF
 
 # Loop to add Infra Nodes
@@ -230,8 +222,6 @@ cat >> /etc/ansible/hosts <<EOF
 
 # host group for adding new nodes
 [new_nodes]
-=======
->>>>>>> refs/remotes/origin/master
 EOF
 
 for (( c=0; c<$INFRACOUNT; c++ ))
@@ -252,10 +242,7 @@ masters
 nodes
 etcd
 nfs
-<<<<<<< HEAD
 new_nodes
-=======
->>>>>>> refs/remotes/origin/master
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -270,11 +257,7 @@ openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 #console_port=8443
-<<<<<<< HEAD
 openshift_cloudprovider_kind=azure
-=======
-#openshift_cloudprovider_kind=azure
->>>>>>> refs/remotes/origin/master
 osm_default_node_selector='type=app'
 
 # default selectors for router and registry services
@@ -324,7 +307,6 @@ $MASTER-0
 
 # host group for nodes
 [nodes]
-<<<<<<< HEAD
 EOF
 
 # Loop to add Masters
@@ -354,8 +336,6 @@ cat >> /etc/ansible/hosts <<EOF
 
 # host group for adding new nodes
 [new_nodes]
-=======
->>>>>>> refs/remotes/origin/master
 EOF
 
 for (( c=0; c<$MASTERCOUNT; c++ ))
@@ -415,11 +395,8 @@ runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall4.yml"
 
 # Delete postinstall.yml file
 echo $(date) "- Deleting unecessary file"
-<<<<<<< HEAD
+
 rm /home/${SUDOUSER}/postinstall1.yml
-=======
-rm /home/${SUDOUSER}/postinstall.yml
->>>>>>> refs/remotes/origin/master
 rm /home/${SUDOUSER}/postinstall2.yml
 rm /home/${SUDOUSER}/postinstall3.yml
 rm /home/${SUDOUSER}/postinstall4.yml
