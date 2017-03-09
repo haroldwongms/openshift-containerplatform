@@ -159,6 +159,7 @@
 		"masterSubnetName": "mastersubnet",
 		"nodeSubnetName": "nodesubnet",
 		"bastionPublicIp": "bastionpublicip",
+		"infraLoadBalancerName": "[concat(variables('openshiftInfraHostname'), 'lb')]",
 		"osType": {
 			"publisher": "RedHat",
 			"offer": "RHEL",
