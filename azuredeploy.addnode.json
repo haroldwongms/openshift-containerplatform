@@ -180,10 +180,12 @@
 		"loadBalancerPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/loadBalancerPrep.sh')]",
 		"nodePrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/nodePrep.sh')]",
 		"masterPrepScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/masterPrep.sh')]",
+		"nodeAddScriptUrl": "[concat(parameters('_artifactsLocation'), 'scripts/nodeAdd.sh')]",
 		"bastionPrepScriptFileName": "bastionPrep.sh",
 		"loadBalancerPrepScriptFileName": "loadBalancerPrep.sh",
 		"nodePrepScriptFileName": "nodePrep.sh",
 		"masterPrepScriptFileName": "masterPrep.sh",
+		"nodeAddScriptFileName": "nodeAdd.sh",
 		"clusterMIDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clustermi.json')]",
 		"clusterNodeDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clusternode.json')]",
 		"basicDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'basic.json')]",
@@ -454,6 +456,31 @@
 				},
 				"protectedSettings": {
 					"commandToExecute": "[concat('bash ', variables('nodePrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
+				}
+			}
+		}, {
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"name": "[concat(variables('openshiftBastionHostname'), '-', parameters('nodeSuffix'), '/deployOpenShift')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionCompute')]",
+			"tags": {
+				"displayName": "AddOpenShiftNode"
+			},
+			"dependsOn": [
+				"[concat('Microsoft.Compute/virtualMachines/extensions/', variables('openshiftNodeHostname'), '-', parameters('nodeSuffix'), '/prepNodes')]"
+			],
+			"properties": {
+				"publisher": "Microsoft.Azure.Extensions",
+				"type": "CustomScript",
+				"typeHandlerVersion": "2.0",
+				"autoUpgradeMinorVersion": true,
+				"settings": {
+					"fileUris": [
+						"[variables('nodeAddScriptUrl')]"
+					]
+				},
+				"protectedSettings": {
+					"commandToExecute": "[concat('bash ', variables('nodeAddScriptFileName'), ' ', concat(variables('openshiftNodeHostname'), '-', parameters('nodeSuffix')), ' ', parameters('adminUsername'))]"
 				}
 			}
 		}
