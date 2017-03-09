@@ -98,7 +98,11 @@
 			"type": "string",
 			"defaultValue": "aacl",
 			"minLength": 1,
+<<<<<<< HEAD
 			"maxLength": 20,
+=======
+			"maxLength": 10,
+>>>>>>> refs/remotes/origin/master
 			"metadata": {
 				"description": "OpenShift cluster prefix.  Used to generate master, infra and node hostnames.  Maximum of 5 characters."
 			}
