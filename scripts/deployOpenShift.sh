@@ -221,7 +221,7 @@ done
 
 # Create new_nodes group
 
-cat > /etc/ansible/hosts <<EOF
+cat >> /etc/ansible/hosts <<EOF
 
 # host group for adding new nodes
 [new_nodes]
@@ -326,7 +326,7 @@ done
 
 # Create new_nodes group
 
-cat > /etc/ansible/hosts <<EOF
+cat >> /etc/ansible/hosts <<EOF
 
 # host group for adding new nodes
 [new_nodes]
