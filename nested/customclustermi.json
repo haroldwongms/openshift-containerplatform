@@ -124,17 +124,15 @@
 				}
 			},
 			"storageProfile": {
-				"imageReference": {
-					"publisher": "RedHat",
-					"offer": "RHEL",
-					"sku": "7.3",
-					"version": "latest"
-				},
 				"osDisk": {
 					"name": "[concat(parameters('hostname'), 'osdisk')]",
-					"vhd": {
-						"uri": "[concat(concat(reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('newStorageAccount')), parameters('apiVersionStorage')).primaryEndpoints['blob'], 'vhds/'), parameters('hostname'), '.vhd')]"
+					"image": {
+						"uri": "[parameters('customImageName')]"
 					},
+					"vhd": {
+						"uri": "[concat(parameters('customStorageAccount'), 'vhds/', parameters('hostname'), '.vhd')]"
+					},
+					"osType": "Linux",
 					"caching": "ReadWrite",
 					"createOption": "FromImage"
 				},
