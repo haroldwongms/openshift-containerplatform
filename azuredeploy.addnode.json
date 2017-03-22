@@ -34,14 +34,14 @@
 				"description": "The name of the custom OS Disk and the folder it is located in."
 			}
 		},
-		"StorageAccountNodeOs": {
+		"storageAccountNodeOs": {
 			"type": "string",
 			"defaultValue": "nodestorageos",
 			"metadata": {
 				"description": "Storage account that contains the Node OS Disk."
 			}
 		},
-		"StorageAccountNodeData": {
+		"storageAccountNodeData": {
 			"type": "string",
 			"defaultValue": "nodestoragedata",
 			"metadata": {
@@ -418,10 +418,10 @@
 						"value": "[variables('customImageName')]"
 					},
 					"newStorageAccountOs": {
-						"value": "[parameters('StorageAccountNodeOs')]"
+						"value": "[parameters('storageAccountNodeOs')]"
 					},
 					"newStorageAccountData": {
-						"value": "[parameters('StorageAccountNodeData')]"
+						"value": "[parameters('storageAccountNodeData')]"
 					},
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
