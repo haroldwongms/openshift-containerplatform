@@ -5,6 +5,16 @@ SELECT=$1
 USERNAME_ORG=$2
 PASSWORD_ACT_KEY="$3"
 POOL_ID=$4
+PRIVATEKEY=$5
+SUDOUSER=$6
+
+# Generate private keys for use by Ansible
+echo $(date) " - Generating Private keys for use by Ansible for OpenShift Installation"
+
+echo "Generating Private Keys"
+
+runuser -l $SUDOUSER -c "echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa"
+runuser -l $SUDOUSER -c "chmod 600 ~/.ssh/id_rsa*"
 
 # Register Host with Cloud Access Subscription
 echo $(date) " - Register host with Cloud Access Subscription"
@@ -59,5 +69,26 @@ yum -y update --exclude=WALinuxAgent
 echo $(date) " - Installing OpenShift utilities"
 
 yum -y install atomic-openshift-utils
+
+# Create playbook to update ansible.cfg file
+
+cat > updateansiblecfg.yaml <<EOF
+#!/usr/bin/ansible-playbook
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - lineinfile:
+      dest: /var/lib/waagent/custom-script/download/1/ansible.cfg
+      regexp: '^library '
+      insertafter: '#library        = /usr/share/my_modules/'
+      line: 'library = /usr/share/ansible/openshift-ansible/library/'
+EOF
+
+# Run Ansible Playbook to update ansible.cfg file
+
+echo $(date) " - Updating ansible.cfg file"
+
+ansible-playbook ./updateansiblecfg.yaml
 
 echo $(date) " - Script Complete"

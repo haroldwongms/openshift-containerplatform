@@ -34,12 +34,12 @@ NODELOOP=$((NODECOUNT - 1))
 #DOMAIN=$( awk 'NR==2' /etc/resolv.conf | awk '{ print $2 }' )
 
 # Generate private keys for use by Ansible
-echo $(date) " - Generating Private keys for use by Ansible for OpenShift Installation"
+# echo $(date) " - Generating Private keys for use by Ansible for OpenShift Installation"
 
-echo "Generating Private Keys"
+# echo "Generating Private Keys"
 
-runuser -l $SUDOUSER -c "echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa"
-runuser -l $SUDOUSER -c "chmod 600 ~/.ssh/id_rsa*"
+# runuser -l $SUDOUSER -c "echo \"$PRIVATEKEY\" > ~/.ssh/id_rsa"
+# runuser -l $SUDOUSER -c "chmod 600 ~/.ssh/id_rsa*"
 
 echo "Configuring SSH ControlPath to use shorter path name"
 
@@ -112,19 +112,143 @@ cat > /home/${SUDOUSER}/postinstall4.yml <<EOF
     shell: oc env dc docker-registry -e REGISTRY_STORAGE=azure -e REGISTRY_STORAGE_AZURE_ACCOUNTNAME=$REGISTRYSA -e REGISTRY_STORAGE_AZURE_ACCOUNTKEY=$ACCOUNTKEY -e REGISTRY_STORAGE_AZURE_CONTAINER=registry
 EOF
 
-# Create azure.conf file
+# Create vars.yml file for use by setup-azure-config.yml playbook
 
-cat > /home/${SUDOUSER}/azure.conf <<EOF
+cat > /home/${SUDOUSER}/vars.yml <<EOF
+g_tenantId: $TENANTID
+g_subscriptionId: $SUBSCRIPTIONID
+g_aadClientSecret: $AADCLIENTID
+aadClientSecret: $AADCLIENTSECRET
+g_resourceGroup: $RESOURCEGROUP
+g_location: $LOCATION
+EOF
 
-{
-   "tenantId": "$TENANTID",
-   "subscriptionId": "$SUBSCRIPTIONID",
-   "aadClientId": "$AADCLIENTID",
-   "aadClientSecret": "$AADCLIENTSECRET",
-   "aadTenantID": "$TENANTID",
-   "resourceGroup": "$RESOURCEGROUP",
-   "location": "$LOCATION",
-}
+# Create Azure Cloud Provider configuration Playbook
+
+cat > /home/${SUDOUSER}/setup-azure-config.yml <<EOF
+#!/usr/bin/ansible-playbook 
+
+- hosts: masters
+  gather_facts: no
+  vars_files:
+  - vars.yml
+  become: yes
+  vars:
+    azure_conf_dir: /etc/azure
+    azure_conf: "{{ azure_conf_dir }}/azure.conf"
+    master_conf: /etc/origin/master/master-config.yaml
+  handlers:
+  - name: restart atomic-openshift-master-api
+    systemd:
+      state: restarted
+      name: atomic-openshift-master-api
+
+  - name: restart atomic-openshift-master-controllers
+    systemd:
+      state: restarted
+      name: atomic-openshift-master-controllers
+
+  - name: restart atomic-openshift-node
+    systemd:
+      state: restarted
+      name: atomic-openshift-node
+
+  post_tasks:
+  - name: make sure /etc/azure exists
+    file:
+      state: directory
+      path: "{{ azure_conf_dir }}"
+
+  - name: populate /etc/azure/azure.conf
+    copy:
+      dest: "{{ azure_conf }}"
+      content: |
+        {
+          "aadClientID" : "{{ g_aadClientId }}",
+          "aadClientSecret" : "{{ g_aadClientSecret }}",
+          "subscriptionID" : "{{ g_subscriptionId }}",
+          "tenantID" : "{{ g_tenantId }}",
+          "resourceGroup": "{{ g_resourceGroup }}",
+        } 
+    notify:
+    - restart atomic-openshift-master-api
+    - restart atomic-openshift-master-controllers
+    - restart atomic-openshift-node
+
+  - name: insert the azure disk config into the master
+    modify_yaml:
+      dest: "{{ master_conf }}"
+      yaml_key: "{{ item.key }}"
+      yaml_value: "{{ item.value }}"
+    with_items:
+    - key: kubernetesMasterConfig.apiServerArguments.cloud-config
+      value:
+      - "{{ azure_conf }}"
+
+    - key: kubernetesMasterConfig.apiServerArguments.cloud-provider
+      value:
+      - azure
+
+    - key: kubernetesMasterConfig.controllerArguments.cloud-config
+      value:
+      - "{{ azure_conf }}"
+
+    - key: kubernetesMasterConfig.controllerArguments.cloud-provider
+      value:
+      - azure
+    notify:
+    - restart atomic-openshift-master-api
+    - restart atomic-openshift-master-controllers
+
+- hosts: nodes:!masters
+  gather_facts: no
+  vars_files:
+  - vars.yml
+  become: yes
+  vars:
+    azure_conf_dir: /etc/azure
+    azure_conf: "{{ azure_conf_dir }}/azure.conf"
+    node_conf: /etc/origin/node/node-config.yaml
+  handlers:
+  - name: restart atomic-openshift-node
+    systemd:
+      state: restarted
+      name: atomic-openshift-node
+  post_tasks:
+  - name: make sure /etc/azure exists
+    file:
+      state: directory
+      path: "{{ azure_conf_dir }}"
+
+  - name: populate /etc/azure/azure.conf
+    copy:
+      dest: "{{ azure_conf }}"
+      content: |
+        {
+          "aadClientID" : "{{ g_aadClientId }}",
+          "aadClientSecret" : "{{ g_aadClientSecret }}",
+          "subscriptionID" : "{{ g_subscriptionId }}",
+          "tenantID" : "{{ g_tenantId }}",
+          "resourceGroup": "{{ g_resourceGroup }}",
+        } 
+    notify:
+    - restart atomic-openshift-node
+
+  - name: insert the azure disk config into the node
+    modify_yaml:
+      dest: "{{ node_conf }}"
+      yaml_key: "{{ item.key }}"
+      yaml_value: "{{ item.value }}"
+    with_items:
+    - key: kubeletArguments.cloud-config
+      value:
+      - "{{ azure_conf }}"
+
+    - key: kubeletArguments.cloud-provider
+      value:
+      - azure
+    notify:
+    - restart atomic-openshift-node
 EOF
 
 # Create Ansible Hosts File
@@ -148,12 +272,12 @@ ansible_become=yes
 openshift_install_examples=true
 deployment_type=openshift-enterprise
 docker_udev_workaround=True
-openshift_use_dnsmasq=false
+openshift_use_dnsmasq=true
 openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
-#console_port=8443
+console_port=443
 openshift_cloudprovider_kind=azure
 osm_default_node_selector='type=app'
 
@@ -242,12 +366,12 @@ ansible_become=yes
 openshift_install_examples=true
 deployment_type=openshift-enterprise
 docker_udev_workaround=True
-openshift_use_dnsmasq=false
+openshift_use_dnsmasq=true
 openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
-#console_port=8443
+console_port=8443
 openshift_cloudprovider_kind=azure
 osm_default_node_selector='type=app'
 
@@ -370,6 +494,11 @@ runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall3.yml"
 echo $(date) "- Configuring Docker Registry to use Azure Storage Account"
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall4.yml"
+
+# Execute setup-azure-config playbook to configure Azure Cloud Provider
+echo $(date) "- Configuring OpenShift Cloud Provider to be Azure"
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/setup-azure-config.yml"
 
 # Delete postinstall.yml file
 echo $(date) "- Deleting unecessary file"
