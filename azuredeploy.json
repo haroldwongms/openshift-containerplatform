@@ -293,11 +293,24 @@
 		"openshiftMasterHostname": "[concat(variables('namingInfix'), '-master')]",
 		"openshiftNodeHostname": "[concat(variables('namingInfix'), '-node')]",
 		"openshiftInfraHostname": "[concat(variables('namingInfix'), '-infra')]",
-		"newStorageAccountMaster": "[concat('master', uniqueString(concat(resourceGroup().id, 'msa')))]",
-		"newStorageAccountInfra": "[concat('infra', uniqueString(concat(resourceGroup().id, 'msa')))]",
+		"newStorageAccountMasterOs": "[concat('masteros', uniqueString(concat(resourceGroup().id, 'msaos')))]",
+		"newStorageAccountMasterData": "[concat('masterdata', uniqueString(concat(resourceGroup().id, 'msadata')))]",
+		"newStorageAccountInfraOs": "[concat('infraos', uniqueString(concat(resourceGroup().id, 'infraos')))]",
+		"newStorageAccountInfraData": "[concat('infradata', uniqueString(concat(resourceGroup().id, 'infradata')))]",
 		"newStorageAccountNodeOs": "[concat('nodeos', uniqueString(concat(resourceGroup().id, 'nodeossa')))]",
 		"newStorageAccountNodeData": "[concat('nodedata', uniqueString(concat(resourceGroup().id, 'nodedatasa')))]",
 		"newStorageAccountRegistry": "[concat('registry', uniqueString(concat(resourceGroup().id, 'registry')))]",
+		"newStorageAccountPersistentVolume1": "[concat('pv1sa', uniqueString(concat(resourceGroup().id, 'persistentvolume1')))]",
+		"newStorageAccountPersistentVolume2": "[concat('pv2sa', uniqueString(concat(resourceGroup().id, 'persistentvolume2')))]",
+		"bastionVmSize": "Standard_DS2_v2",
+		"bastionType": "Standard_LRS",
+		"masterOsType": "[variables('vmSizesMap')[parameters('masterVmSize')].storageAccountType]",
+		"masterDataType": "[variables('vmSizesMap')[parameters('masterVmSize')].storageAccountType]",
+		"infraOsType": "Standard_LRS",
+		"infraDataType": "[variables('vmSizesMap')[parameters('infraVmSize')].storageAccountType]",
+		"nodeOsType": "Standard_LRS",
+		"nodeDataType": "[variables('vmSizesMap')[parameters('nodeVmSize')].storageAccountType]",
+		
 		"addressPrefix": "10.0.0.0/8",
 		"masterSubnetPrefix": "10.1.0.0/16",
 		"nodeSubnetPrefix": "10.2.0.0/16",
@@ -328,6 +341,14 @@
 			"offer": "RHEL",
 			"sku": "7.3",
 			"version": "latest"
+		},
+		"sshPrivateKey": {
+			"reference": {
+				"keyvault": {
+					"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('keyVaultResourceGroup'), '/providers/Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+				},
+				"secretName": "[parameters('keyVaultSecret')]"
+			}
 		},
 		"imageReference": "[variables('osType')]",
 		"singlequote": "'",
@@ -737,25 +758,47 @@
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
-			"name": "[variables('newStorageAccountMaster')]",
+			"name": "[variables('newStorageAccountMasterOs')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionStorage')]",
 			"tags": {
-				"displayName": "MasterStorageAccount"
+				"displayName": "MasterOsStorageAccount"
 			},
 			"properties": {
-				"accountType": "[variables('vmSizesMap')[parameters('masterVmSize')].storageAccountType]"
+				"accountType": "masterOsType"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
-			"name": "[variables('newStorageAccountInfra')]",
+			"name": "[variables('newStorageAccountMasterData')]",
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionStorage')]",
 			"tags": {
-				"displayName": "InfraStorageAccount"
+				"displayName": "MasterDataStorageAccount"
 			},
 			"properties": {
-				"accountType": "[variables('vmSizesMap')[parameters('infraVmSize')].storageAccountType]"
+				"accountType": "masterDataType"
+			}
+		}, {
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[variables('newStorageAccountInfraOs')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionStorage')]",
+			"tags": {
+				"displayName": "InfraOsStorageAccount"
+			},
+			"properties": {
+				"accountType": "infraOsType"
+			}
+		},  {
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[variables('newStorageAccountInfraData')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionStorage')]",
+			"tags": {
+				"displayName": "InfraDataStorageAccount"
+			},
+			"properties": {
+				"accountType": "infraDataType"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -763,10 +806,10 @@
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionStorage')]",
 			"tags": {
-				"displayName": "NodeStorageAccount"
+				"displayName": "NodeOsStorageAccount"
 			},
 			"properties": {
-				"accountType": "[variables('vmSizesMap')[parameters('nodeVmSize')].storageAccountType]"
+				"accountType": "nodeOsType"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -774,10 +817,10 @@
 			"location": "[variables('location')]",
 			"apiVersion": "[variables('apiVersionStorage')]",
 			"tags": {
-				"displayName": "NodeStorageAccount"
+				"displayName": "NodeDataStorageAccount"
 			},
 			"properties": {
-				"accountType": "[variables('vmSizesMap')[parameters('nodeVmSize')].storageAccountType]"
+				"accountType": "nodeDataType"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -786,6 +829,28 @@
 			"apiVersion": "[variables('apiVersionStorage')]",
 			"tags": {
 				"displayName": "RegistryStorageAccount"
+			},
+			"properties": {
+				"accountType": "Standard_LRS"
+			}
+		}, {
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[variables('newStorageAccountPersistentVolume1')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionStorage')]",
+			"tags": {
+				"displayName": "PersistentVolume1StorageAccount"
+			},
+			"properties": {
+				"accountType": "Standard_LRS"
+			}
+		}, {
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[variables('newStorageAccountPersistentVolume2')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionStorage')]",
+			"tags": {
+				"displayName": "PersistentVolume2StorageAccount"
 			},
 			"properties": {
 				"accountType": "Standard_LRS"
@@ -1184,7 +1249,7 @@
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountInfraOs'))]",
 				"[concat('Microsoft.Network/networkInterfaces/', variables('openshiftBastionHostname'), '-nic')]"
 			],
 			"properties": {
@@ -1207,7 +1272,7 @@
 						"value": "[parameters('adminUsername')]"
 					},
 					"vmSize": {
-						"value": "[parameters('masterVmSize')]"
+						"value": "[parameters('bastionVmSize')]"
 					},
 					"hostname": {
 						"value": "[variables('openshiftBastionHostname')]"
@@ -1216,7 +1281,7 @@
 						"value": "[variables('customImageName')]"
 					},
 					"newStorageAccount": {
-						"value": "[variables('newStorageAccountMaster')]"
+						"value": "[variables('newStorageAccountInfraOs')]"
 					},
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
@@ -1438,7 +1503,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ',variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'))]"
+					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ',variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'), ' ',variables('singlequote'), variables('sshPrivateKey'), variables('singlequote'), ' ',variables('singlequote'), parameters('adminUsername'), variables('singlequote'))]"
 				}
 			}
 		}, {
@@ -1643,9 +1708,13 @@
 			"type": "string",
 			"value": "[variables('newStorageAccountNodeData')]"
 		},
-		"Infra Storage Account Name": {
+		"Infra OS Storage Account Name": {
 			"type": "string",
-			"value": "[variables('newStorageAccountInfra')]"
+			"value": "[variables('newStorageAccountInfraOs')]"
+		},
+		"Infra Data Storage Account Name": {
+			"type": "string",
+			"value": "[variables('newStorageAccountInfraData')]"
 		}
 	}
 }
