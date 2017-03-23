@@ -1,0 +1,116 @@
+﻿{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"_artifactsLocation": {
+			"type": "string",
+			"metadata": {
+				"description": "Base URL for script location"
+			}
+		},
+		"apiVersionCompute": {
+			"type": "string",
+			"metadata": {
+				"description": "API version for compute resources"
+			}
+		},
+		"location": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Storage Account for Docker Registry"
+			}
+		},
+		"openshiftBastionHostname": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Bastion hostname"
+			}
+		},
+		"bastionPrepScriptFileName": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Master hostname"
+			}
+		},
+		
+		"bastionPrepScriptUrl": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Master hostname"
+			}
+		},
+		"adminUsername": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Master VM public IP fully qualified domain name"
+			}
+		},
+		"rhsmUsernamePasswordOrActivationKey": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Master VM public IP address"
+			}
+		},
+		"rhsmUsernameOrOrgId": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Infra Node hostname"
+			}
+		},
+		"rhsmPasswordOrActivationKey": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "OpenShift Node hostname"
+			}
+		},
+		"rhsmPoolId": {
+			"type": "int",
+			"minValue": 1,
+			"metadata": {
+				"description": "Number of OpenShift Master nodes"
+			}
+		},
+		"sshPrivateKey": {
+			"type": "securestring",
+			"minLength": 1,
+			"metadata": {
+				"description": "SSH private key for deploying OpenShift"
+			}
+		}
+	},
+	"variables": {
+		"singlequote": "'"
+	},
+	"resources": [{
+		"type": "Microsoft.Compute/virtualMachines/extensions",
+		"name": "[concat(parameters('openshiftBastionHostname'), '/deployOpenShift')]",
+		"location": "[parameters('location')]",
+		"apiVersion": "[parameters('apiVersionCompute')]",
+		"tags": {
+			"displayName": "PrepBastion"
+		},
+		"properties": {
+			"publisher": "Microsoft.Azure.Extensions",
+			"type": "CustomScript",
+			"typeHandlerVersion": "2.0",
+			"autoUpgradeMinorVersion": true,
+			"settings": {
+				"fileUris": [
+					"[parameters('bastionPrepScriptUrl')]"
+				]
+			},
+			"protectedSettings": {
+				"commandToExecute": "[concat('bash ', parameters('bastionPrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ',variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'), ' ',variables('singlequote'), parameters('sshPrivateKey'), variables('singlequote'), ' ',variables('singlequote'), parameters('adminUsername'), variables('singlequote'))]"
+			}
+		}
+	}],
+	"outputs": {}
+}
