@@ -310,6 +310,8 @@
 		"infraDataType": "[variables('vmSizesMap')[parameters('infraVmSize')].storageAccountType]",
 		"nodeOsType": "Standard_LRS",
 		"nodeDataType": "[variables('vmSizesMap')[parameters('nodeVmSize')].storageAccountType]",
+		"persistentVolume1Type": "Standard_LRS",
+		"persistentVolume2Type": "Standard_LRS",
 		
 		"addressPrefix": "10.0.0.0/8",
 		"masterSubnetPrefix": "10.1.0.0/16",
@@ -342,14 +344,6 @@
 			"sku": "7.3",
 			"version": "latest"
 		},
-		"sshPrivateKey": {
-			"reference": {
-				"keyvault": {
-					"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('keyVaultResourceGroup'), '/providers/Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
-				},
-				"secretName": "[parameters('keyVaultSecret')]"
-			}
-		},
 		"imageReference": "[variables('osType')]",
 		"singlequote": "'",
 		"customImageName": "[concat(parameters('customStorageAccount'), parameters('customOsDiskName'))]",
@@ -362,6 +356,7 @@
 		"loadBalancerPrepScriptFileName": "loadBalancerPrep.sh",
 		"nodePrepScriptFileName": "nodePrep.sh",
 		"masterPrepScriptFileName": "masterPrep.sh",
+		"bastionPrepTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/bastionprep.json')]",
 		"clusterMIDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clustermi.json')]",
 		"clusterNodeDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'clusternode.json')]",
 		"basicDeploymentTemplateUrl": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('customVhdOrGallery'), 'basic.json')]",
@@ -765,7 +760,7 @@
 				"displayName": "MasterOsStorageAccount"
 			},
 			"properties": {
-				"accountType": "masterOsType"
+				"accountType": "[variables('masterOsType')]"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -776,7 +771,7 @@
 				"displayName": "MasterDataStorageAccount"
 			},
 			"properties": {
-				"accountType": "masterDataType"
+				"accountType": "[variables('masterDataType')]"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -787,7 +782,7 @@
 				"displayName": "InfraOsStorageAccount"
 			},
 			"properties": {
-				"accountType": "infraOsType"
+				"accountType": "[variables('infraOsType')]"
 			}
 		},  {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -798,7 +793,7 @@
 				"displayName": "InfraDataStorageAccount"
 			},
 			"properties": {
-				"accountType": "infraDataType"
+				"accountType": "[variables('infraDataType')]"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -809,7 +804,7 @@
 				"displayName": "NodeOsStorageAccount"
 			},
 			"properties": {
-				"accountType": "nodeOsType"
+				"accountType": "[variables('nodeOsType')]"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -820,7 +815,7 @@
 				"displayName": "NodeDataStorageAccount"
 			},
 			"properties": {
-				"accountType": "nodeDataType"
+				"accountType": "[variables('nodeDataType')]"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -842,7 +837,7 @@
 				"displayName": "PersistentVolume1StorageAccount"
 			},
 			"properties": {
-				"accountType": "Standard_LRS"
+				"accountType": "[variables('persistentVolume1Type')]"
 			}
 		}, {
 			"type": "Microsoft.Storage/storageAccounts",
@@ -853,7 +848,7 @@
 				"displayName": "PersistentVolume2StorageAccount"
 			},
 			"properties": {
-				"accountType": "Standard_LRS"
+				"accountType": "[variables('persistentVolume2Type')]"
 			}
 		}, {
 			"type": "Microsoft.Network/publicIPAddresses",
@@ -1272,7 +1267,7 @@
 						"value": "[parameters('adminUsername')]"
 					},
 					"vmSize": {
-						"value": "[parameters('bastionVmSize')]"
+						"value": "[variables('bastionVmSize')]"
 					},
 					"hostname": {
 						"value": "[variables('openshiftBastionHostname')]"
@@ -1299,7 +1294,8 @@
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMaster'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMasterOs'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountMasterData'))]",
 				"masterNicLoop",
 				"masteravailabilityset"
 			],
@@ -1310,7 +1306,7 @@
 			"properties": {
 				"mode": "Incremental",
 				"templateLink": {
-					"uri": "[variables('clusterMIDeploymentTemplateUrl')]",
+					"uri": "[variables('clusterNodeDeploymentTemplateUrl')]",
 					"contentVersion": "1.0.0.0"
 				},
 				"parameters": {
@@ -1341,8 +1337,11 @@
 					"customImageName": {
 						"value": "[variables('customImageName')]"
 					},
-					"newStorageAccount": {
-						"value": "[variables('newStorageAccountMaster')]"
+					"newStorageAccountOs": {
+						"value": "[variables('newStorageAccountMasterOs')]"
+					},
+					"newStorageAccountData": {
+						"value": "[variables('newStorageAccountMasterData')]"
 					},
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
@@ -1360,7 +1359,8 @@
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountInfra'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountInfraOs'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('newStorageAccountInfraData'))]",
 				"infraNicLoop",
 				"infraavailabilityset"
 			],
@@ -1371,7 +1371,7 @@
 			"properties": {
 				"mode": "Incremental",
 				"templateLink": {
-					"uri": "[variables('clusterMIDeploymentTemplateUrl')]",
+					"uri": "[variables('clusterNodeDeploymentTemplateUrl')]",
 					"contentVersion": "1.0.0.0"
 				},
 				"parameters": {
@@ -1402,8 +1402,11 @@
 					"customImageName": {
 						"value": "[variables('customImageName')]"
 					},
-					"newStorageAccount": {
-						"value": "[variables('newStorageAccountInfra')]"
+					"newStorageAccountOs": {
+						"value": "[variables('newStorageAccountInfraOs')]"
+					},
+					"newStorageAccountData": {
+						"value": "[variables('newStorageAccountInfraData')]"
 					},
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
@@ -1482,28 +1485,60 @@
 				}
 			}
 		}, {
-			"type": "Microsoft.Compute/virtualMachines/extensions",
-			"name": "[concat(variables('openshiftBastionHostname'), '/deployOpenShift')]",
-			"location": "[variables('location')]",
-			"apiVersion": "[variables('apiVersionCompute')]",
-			"tags": {
-				"displayName": "PrepBastion"
-			},
+			"name": "BastionPrep",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
 				"bastionVmDeployment"
 			],
 			"properties": {
-				"publisher": "Microsoft.Azure.Extensions",
-				"type": "CustomScript",
-				"typeHandlerVersion": "2.0",
-				"autoUpgradeMinorVersion": true,
-				"settings": {
-					"fileUris": [
-						"[variables('bastionPrepScriptUrl')]"
-					]
+				"mode": "Incremental",
+				"templateLink": {
+					"uri": "[variables('bastionPrepTemplateUrl')]",
+					"contentVersion": "1.0.0.0"
 				},
-				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('bastionPrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ',variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'), ' ',variables('singlequote'), variables('sshPrivateKey'), variables('singlequote'), ' ',variables('singlequote'), parameters('adminUsername'), variables('singlequote'))]"
+				"parameters": {
+					"_artifactsLocation": {
+						"value": "[parameters('_artifactsLocation')]"
+					},
+					"apiVersionCompute": {
+						"value": "[variables('apiVersionCompute')]"
+					},
+					"location": {
+						"value": "[variables('location')]"
+					},
+					"openshiftBastionHostname": {
+						"value": "[variables('openshiftBastionHostname')]"
+					},
+					"bastionPrepScriptFileName": {
+						"value": "[variables('bastionPrepScriptFileName')]"
+					},
+					"bastionPrepScriptUrl": {
+						"value": "[variables('bastionPrepScriptUrl')]"
+					},
+					"adminUsername": {
+						"value": "[parameters('adminUsername')]"
+					},
+					"rhsmUsernamePasswordOrActivationKey": {
+						"value": "[parameters('rhsmUsernamePasswordOrActivationKey')]"
+					},
+					"rhsmUsernameOrOrgId": {
+						"value": "[parameters('rhsmUsernameOrOrgId')]"
+					},
+					"rhsmPasswordOrActivationKey": {
+						"value": "[parameters('rhsmPasswordOrActivationKey')]"
+					},
+					"rhsmPoolId": {
+						"value": "[parameters('rhsmPoolId')]"
+					},
+					"sshPrivateKey": {
+						"reference": {
+							"keyvault": {
+								"id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('keyVaultResourceGroup'), '/providers/Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+							},
+							"secretName": "[parameters('keyVaultSecret')]"
+						}
+					}
 				}
 			}
 		}, {
@@ -1598,6 +1633,7 @@
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "[variables('apiVersionLinkTemplate')]",
 			"dependsOn": [
+				"BastionPrep",
 				"masterPrepLoop",
 				"infraPrepLoop",
 				"nodePrepLoop"
