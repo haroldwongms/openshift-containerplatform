@@ -79,7 +79,7 @@ cat > updateansiblecfg.yaml <<EOF
   gather_facts: no
   tasks:
   - lineinfile:
-      dest: /var/lib/waagent/custom-script/download/1/ansible.cfg
+      dest: /etc/ansible/ansible.cfg
       regexp: '^library '
       insertafter: '#library        = /usr/share/my_modules/'
       line: 'library = /usr/share/ansible/openshift-ansible/library/'
