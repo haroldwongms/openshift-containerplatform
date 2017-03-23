@@ -93,6 +93,10 @@ Save the Object Id and the GUID in the Service Principal Names section.  This GU
   e.  For Role, Select Contributor<br/>
   f.  In Select field, type the name of your Service Principal to find it<br/>
   g.  Click the Service Principal from the list and hit Save<br/>
+
+![IAM ScreenShot1](images/openshiftiambcd.jpg)
+
+![IAM ScreenShot2](images/openshiftiamefg.jpg)
   
 **Azure CLI 2.0**
 
