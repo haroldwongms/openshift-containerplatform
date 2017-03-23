@@ -52,13 +52,13 @@
 			}
 		},
 		"rhsmUsernameOrOrgId": {
-			"type": "securestring",
+			"type": "string",
 			"metadata": {
 				"description": "OpenShift Infra Node hostname"
 			}
 		},
 		"rhsmPasswordOrActivationKey": {
-			"type": "securestring",
+			"type": "string",
 			"metadata": {
 				"description": "OpenShift Node hostname"
 			}
