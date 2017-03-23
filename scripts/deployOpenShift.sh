@@ -117,8 +117,8 @@ EOF
 cat > /home/${SUDOUSER}/vars.yml <<EOF
 g_tenantId: $TENANTID
 g_subscriptionId: $SUBSCRIPTIONID
-g_aadClientSecret: $AADCLIENTID
-aadClientSecret: $AADCLIENTSECRET
+g_aadClientId: $AADCLIENTID
+g_aadClientSecret: $AADCLIENTSECRET
 g_resourceGroup: $RESOURCEGROUP
 g_location: $LOCATION
 EOF
@@ -501,7 +501,7 @@ echo $(date) "- Configuring OpenShift Cloud Provider to be Azure"
 runuser -l $SUDOUSER -c "ansible-playbook ~/setup-azure-config.yml"
 
 # Delete postinstall.yml file
-echo $(date) "- Deleting unecessary file"
+echo $(date) "- Deleting unecessary files"
 
 rm /home/${SUDOUSER}/postinstall1.yml
 rm /home/${SUDOUSER}/postinstall2.yml
