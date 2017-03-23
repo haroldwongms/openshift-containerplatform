@@ -34,22 +34,87 @@ From a Linux or Mac, you can just use the ssh-keygen command.  Once you are fini
 
 You will need to create a Key Vault to store your SSH Private Key that will then be used as part of the deployment.  This extra work is to provide security around the Private Key - especially since it does not have a passphrase.  I recommend creating a Resource Group specifically to store the KeyVault.  This way, you can reuse the KeyVault for other deployments and you won't have to create this every time you chose to deploy another OpenShift cluster.
 
-1. Create KeyVault using Powershell <br/>
-  a.  Create new resource group: `New-AzureRMResourceGroup -Name 'ResourceGroupName' -Location 'West US'`<br/>
-  b.  Create key vault: `New-AzureRmKeyVault -VaultName 'KeyVaultName' -ResourceGroup 'ResourceGroupName' -Location 'West US'`<br/>
-  c.  Create variable with sshPrivateKey: `$securesecret = ConvertTo-SecureString -String '[copy ssh Private Key here - including line feeds]' -AsPlainText -Force`<br/>
-  d.  Create Secret: `Set-AzureKeyVaultSecret -Name 'SecretName' -SecretValue $securesecret -VaultName 'KeyVaultName'`<br/>
-  e.  Enable for Template Deployment: `Set-AzureRMKeyVaultAccessPolicy -VaultName 'KeyVaultName' -ResourceGroupName 'ResourceGroupName' -EnabledForTemplateDeployment`<br/>
+1. Create KeyVault using Powershell
+  a.  Create new resource group: `New-AzureRMResourceGroup -Name 'ResourceGroupName' -Location 'West US'`
+  b.  Create key vault: `New-AzureRmKeyVault -VaultName 'KeyVaultName' -ResourceGroup 'ResourceGroupName' -Location 'West US'`
+  c.  Create variable with sshPrivateKey: `$securesecret = ConvertTo-SecureString -String '[copy ssh Private Key here - including line feeds]' -AsPlainText -Force`
+  d.  Create Secret: `Set-AzureKeyVaultSecret -Name 'SecretName' -SecretValue $securesecret -VaultName 'KeyVaultName'`
+  e.  Enable for Template Deployment: `Set-AzureRMKeyVaultAccessPolicy -VaultName 'KeyVaultName' -ResourceGroupName 'ResourceGroupName' -EnabledForTemplateDeployment`
 
-2. **Create Key Vault using Azure CLI**<br/>
-  a.  Create new Resource Group: azure group create \<name\> \<location\> <br/>
-         Ex: `azure group create ResourceGroupName 'East US'` <br/>
-  b.  Create Key Vault: azure keyvault create -u \<vault-name\> -g \<resource-group\> -l \<location\><br/>
-         Ex: `azure keyvault create -u KeyVaultName -g ResourceGroupName -l 'East US'`<br/>
-  c.  Create Secret: azure keyvault secret set -u \<vault-name\> -s \<secret-name\> --file \<private-key-file-name\><br/>
-         Ex: `azure keyvault secret set -u KeyVaultName -s SecretName --file ~/.ssh/id_rsa` <br/>
-  d.  Enable the Keyvvault for Template Deployment: azure keyvault set-policy -u \<vault-name\> --enabled-for-template-deployment true <br/>
-         Ex: `azure keyvault set-policy -u KeyVaultName --enabled-for-template-deployment true` <br/>
+2. **Create Key Vault using Azure CLI 1.0**
+  a.  Create new Resource Group: azure group create \<name\> \<location\>
+         Ex: `azure group create ResourceGroupName 'East US'`
+  b.  Create Key Vault: azure keyvault create -u \<vault-name\> -g \<resource-group\> -l \<location\>
+         Ex: `azure keyvault create -u KeyVaultName -g ResourceGroupName -l 'East US'`
+  c.  Create Secret: azure keyvault secret set -u \<vault-name\> -s \<secret-name\> --file \<private-key-file-name\>
+         Ex: `azure keyvault secret set -u KeyVaultName -s SecretName --file ~/.ssh/id_rsa`
+  d.  Enable the Keyvvault for Template Deployment: azure keyvault set-policy -u \<vault-name\> --enabled-for-template-deployment true
+         Ex: `azure keyvault set-policy -u KeyVaultName --enabled-for-template-deployment true`
+
+3. **Create Key Vault using Azure CLI 2.0**
+  a.  Create new Resource Group: az group create -n \<name\> -l \<location\>
+         Ex: `az group create -n ResourceGroupName -l 'East US'`
+  b.  Create Key Vault: az keyvault create -n \<vault-name\> -g \<resource-group\> -l \<location\> --enabled-for-template-deployment true
+         Ex: `az keyvault create -n KeyVaultName -g ResourceGroupName -l 'East US' --enabled-for-template-deployment true`
+  c.  Create Secret: az keyvault secret set --vault-name \<vault-name\> -n \<secret-name\> --file \<private-key-file-name\>
+         Ex: `az keyvault secret set --vault-name KeyVaultName -n SecretName --file ~/.ssh/id_rsa`
+
+###
+
+Generate Azure Active Directory (AAD) Service Principal
+
+To configure Azure as the Cloud Provider for OpenShift Container Platform, you will need to create an Azure Active Directory Service Principal.  The easiest way to perform this taks is via the Azure CLI.  Below are the steps for doing this.
+
+**Azure CLI 1.0**
+
+1. **Create Service Principal**
+  a.  azure ad sp create -n \<friendly name\> -p \<password\> --home-page \<URL\> --identifier-uris \<URL\>
+      Ex: `azure ad sp create -n openshiftcloudprovider -p Pass@word1 --home-page http://myhomepage --identifier-uris http://myhomepage`
+
+The entries for --home-page and --identifier-uris is not important for this use case so they do not have to be valid links.
+You will get an output similar to this
+
+```javascript
+info:    Executing command ad sp create
++ Creating application openshift demo cloud provider
++ Creating service principal for application 198c4803-1236-4c3f-ad90-46e5f3b4cd2a
+data:    Object Id:               00419334-174b-41e8-9b83-9b5011d8d352
+data:    Display Name:            openshiftcloudprovider
+data:    Service Principal Names:
+data:                             198c4803-1236-4c3f-ad90-46e5f3b4cd2a
+data:                             http://myhomepage
+info:    ad sp create command OK
+```
+Save the Object Id and the GUID in the Service Principal Names section.  This GUID is the Application ID / Client ID (aadClientId parameter).  The the password you entered as part of the CLI command is the input the aadClientSecret paramter.
+
+2. **Assign permissions to Service Principal for specific Resource Group**
+  a.  Sign into the Azure Portal
+  b.  Select the Resource Group you want to assign permissions to
+  c.  Select Access control (IAM) from middle pane
+  d.  Click Add on right pane
+  e.  For Role, Select Contributor
+  f.  In Select field, type the name of your Service Principal to find it
+  g.  Click the Service Principal from the list and hit Save
+  
+**Azure CLI 2.0**
+
+1. **Create Service Principal and assign permissions to Resource Group**
+  a.  az ad sp create-for-rbac -n \<friendly name\> --password \<password\> --role contributor --scopes /subscriptions/\<subscription_id\>/resourceGroups/\<Resource Group Name\>
+      Ex: `az ad sp create-for-rbac -n openshiftcloudprovider --password Pass@word1 --role contributor --scopes /subscriptions/555a123b-1234-5ccc-defgh-6789abcdef01/resourceGroups/00000test`
+
+You will get an output similar to:
+
+```javascript
+{
+  "appId": "2c8c6a58-44ac-452e-95d8-a790f6ade583",
+  "displayName": "openshiftcloudprovider",
+  "name": "http://openshiftcloudprovider",
+  "password": "Pass@word1",
+  "tenant": "12a345bc-1234-dddd-12ab-34cdef56ab78"
+}
+```
+
+The appId is used for the aadClientId parameter.
 
 ### Red Hat Subscription Access
 
@@ -87,6 +152,8 @@ You will also need to get the Pool ID that contains your entitlements for OpenSh
 16. keyVaultResourceGroup: The name of the Resource Group that contains the Key Vault
 17. keyVaultName: The name of the Key Vault you created
 18. keyVaultSecret: The Secret Name you used when creating the Secret (that contains the Private Key)
+18. aadClientId: Azure Active Directory Client ID also known as Application ID for Service Principal
+18. aadClientSecret: Azure Active Directory Client Secret for Service Principal
 19. defaultSubDomainType: This will either be xipio (if you don't have your own domain) or custom if you have your own domain that you would like to use for routing
 20. defaultSubDomain: The wildcard DNS name you would like to use for routing if you selected custom above.  If you selected xipio above, you must still enter something here but it will not be used
 
