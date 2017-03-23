@@ -16,21 +16,18 @@
 		},
 		"location": {
 			"type": "string",
-			"minLength": 1,
 			"metadata": {
 				"description": "Storage Account for Docker Registry"
 			}
 		},
 		"openshiftBastionHostname": {
 			"type": "string",
-			"minLength": 1,
 			"metadata": {
 				"description": "OpenShift Bastion hostname"
 			}
 		},
 		"bastionPrepScriptFileName": {
 			"type": "string",
-			"minLength": 1,
 			"metadata": {
 				"description": "OpenShift Master hostname"
 			}
@@ -38,49 +35,42 @@
 		
 		"bastionPrepScriptUrl": {
 			"type": "string",
-			"minLength": 1,
 			"metadata": {
 				"description": "OpenShift Master hostname"
 			}
 		},
 		"adminUsername": {
 			"type": "string",
-			"minLength": 1,
 			"metadata": {
 				"description": "OpenShift Master VM public IP fully qualified domain name"
 			}
 		},
 		"rhsmUsernamePasswordOrActivationKey": {
 			"type": "string",
-			"minLength": 1,
 			"metadata": {
 				"description": "OpenShift Master VM public IP address"
 			}
 		},
 		"rhsmUsernameOrOrgId": {
-			"type": "string",
-			"minLength": 1,
+			"type": "securestring",
 			"metadata": {
 				"description": "OpenShift Infra Node hostname"
 			}
 		},
 		"rhsmPasswordOrActivationKey": {
-			"type": "string",
-			"minLength": 1,
+			"type": "securestring",
 			"metadata": {
 				"description": "OpenShift Node hostname"
 			}
 		},
 		"rhsmPoolId": {
-			"type": "int",
-			"minValue": 1,
+			"type": "string",
 			"metadata": {
 				"description": "Number of OpenShift Master nodes"
 			}
 		},
 		"sshPrivateKey": {
 			"type": "securestring",
-			"minLength": 1,
 			"metadata": {
 				"description": "SSH private key for deploying OpenShift"
 			}
