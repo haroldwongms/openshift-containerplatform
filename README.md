@@ -8,7 +8,9 @@ This template deploys OpenShift Container Platform with basic username / passwor
 |Master Load Balancer	|2 probes and 2 rules for TCP 8443 and TCP 9090 <br/> NAT rules for SSH on Ports 2200-220X                                           |
 |Infra Load Balancer	|3 probes and 3 rules for TCP 80, TCP 443 and TCP 9090 									                                             |
 |Public IP Addresses	|Bastion Public IP for Bastion Node<br />OpenShift Master public IP attached Master Load Balancer<br />OpenShift Router public IP attached to Infra Load Balancer            |
-|Storage Accounts   	|1 Storage Account for Master, and Bastion VMs<br />1 Storage Account for Infra VMs<br />2 Storage Accounts for Node VMs<br />1 Storage Account for Private Docker Registry  |
+|Storage Accounts   	|2 Storage Accounts for Masters <br />2 Storage Accounts for Infra VMs and Bastion VM<br />2 Storage Accounts for Node VMs<br />1 Storage Account for Private Docker Registry<br />2 Storage Accounts for Persistent Volumes  |
+|Network Security Groups|1 Network Security Group Master VMs<br />1 Network Security Group for Infra VMs<br />1 Network Security Group for Node VMs<br />1 Network Security Group for Bastion VM  |
+|Availability Sets      |1 Availability Set for Master VMs<br />1 Availability Set for Infra VMs<br />1 Availability Set for Node VMs  |
 |Virtual Machines   	|1 Bastion Node - Used to Run Ansible Playbook for OpenShift deployment<br />1, 2, or 3 Masters. First Master is used to run a NFS server to provide persistent storage.<br />1, 2, or 3 Infra nodes<br />User-defined number of nodes (1 to 30)<br />All VMs include a single attached data disk for Docker thin pool logical volume|
 
 ![Cluster Diagram](images/openshiftdiagram.jpg)
@@ -63,6 +65,8 @@ You will need to create a Key Vault to store your SSH Private Key that will then
 
 To configure Azure as the Cloud Provider for OpenShift Container Platform, you will need to create an Azure Active Directory Service Principal.  The easiest way to perform this taks is via the Azure CLI.  Below are the steps for doing this.
 
+You will want to create the Resource Group that you will ultimately deploy the OpenShift cluster to prior to completing the following steps.  If you don't, then wait until you initiate the deployment of the cluster before completing **Azure CLI 1.0 Step 2**. If using **Azure CLI 2.0**, complete step 2 to create the Service Principal prior to deploying the cluster and then assign permissions based on **Azure CLI 1.0 Step 2**.
+ 
 **Azure CLI 1.0**
 
 1. **Create Service Principal**<br/>
@@ -104,6 +108,10 @@ Save the Object Id and the GUID in the Service Principal Names section.  This GU
   a.  az ad sp create-for-rbac -n \<friendly name\> --password \<password\> --role contributor --scopes /subscriptions/\<subscription_id\>/resourceGroups/\<Resource Group Name\><br/>
       Ex: `az ad sp create-for-rbac -n openshiftcloudprovider --password Pass@word1 --role contributor --scopes /subscriptions/555a123b-1234-5ccc-defgh-6789abcdef01/resourceGroups/00000test`<br/>
 
+2. **Create Service Principal without assigning permissions to Resource Group**<br/>
+  a.  az ad sp create-for-rbac -n \<friendly name\> --password \<password\> --role contributor --skip-assignment<br/>
+      Ex: `az ad sp create-for-rbac -n openshiftcloudprovider --password Pass@word1 --role contributor --skip-assignment`<br/>
+
 You will get an output similar to:
 
 ```javascript
@@ -117,6 +125,8 @@ You will get an output similar to:
 ```
 
 The appId is used for the aadClientId parameter.
+
+To assign permissions, please follow the instructions from Azure CLI 1.0 Step 2 above.
 
 ### Red Hat Subscription Access
 
@@ -168,6 +178,21 @@ Deploy to Azure using Azure Portal:
 </a><br/>
 
 Once you have collected all of the prerequisites for the template, you can deploy the template by clicking Deploy to Azure or populating the **azuredeploy.parameters.json** file and executing Resource Manager deployment commands with PowerShell or the Azure CLI.
+
+**Azure CLI 1.0**
+
+1. Create Resource Group: azure group create \<name\> \<location\><br />
+Ex: `azure group create openshift-cluster westus`
+2. Create Resource Group Deployment: azure group deployment create --name \<deployment name\> --template-file \<template_file\> -e \<parameters_file\> --resource-group \<resource group name\> --nowait<br />
+Ex: `azure group deployment create --name ocpdeployment --template-file azuredeploy.json -e azuredeploy.parameters.json --resource-group openshift-cluster --nowait`
+
+**Azure CLI 2.0**
+
+1. Create Resource Group: az group create -n \<name\> -l \<location\><br />
+Ex: `az group create -n openshift-cluster -l westus`
+2. Create Resource Group Deployment: az group deployment create --name \<deployment name\> --template-file \<template_file\> --parameters @\<parameters_file\> --resource-group \<resource group name\> --nowait<br />
+Ex: `azure group deployment create --name ocpdeployment --template-file azuredeploy.json --parameters @azuredeploy.parameters.json --resource-group openshift-cluster --nowait`
+
 
 ### NOTE
 
