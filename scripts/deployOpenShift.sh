@@ -498,6 +498,8 @@ runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall4.yml"
 # Execute setup-azure-config playbook to configure Azure Cloud Provider
 echo $(date) "- Configuring OpenShift Cloud Provider to be Azure"
 
+sleep 120
+
 runuser -l $SUDOUSER -c "ansible-playbook ~/setup-azure-config.yml"
 
 # Delete postinstall.yml file
