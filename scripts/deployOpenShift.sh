@@ -475,13 +475,6 @@ echo $(date) "- Re-enabling requiretty"
 
 sed -i -e "s/# Defaults    requiretty/Defaults    requiretty/" /etc/sudoers
 
-# Execute setup-azure-config playbook to configure Azure Cloud Provider
-echo $(date) "- Configuring OpenShift Cloud Provider to be Azure"
-
-sleep 120
-
-runuser -l $SUDOUSER -c "ansible-playbook ~/setup-azure-config.yml"
-
 # Adding user to OpenShift authentication file
 echo $(date) "- Adding OpenShift user"
 
@@ -509,5 +502,14 @@ rm /home/${SUDOUSER}/postinstall1.yml
 rm /home/${SUDOUSER}/postinstall2.yml
 rm /home/${SUDOUSER}/postinstall3.yml
 rm /home/${SUDOUSER}/postinstall4.yml
+
+# Execute setup-azure-config playbook to configure Azure Cloud Provider
+# echo $(date) "- Configuring OpenShift Cloud Provider to be Azure"
+
+# sleep 120
+
+# runuser -l $SUDOUSER -c "ansible-playbook ~/setup-azure-config.yml"
+
+
 
 echo $(date) " - Script complete"
