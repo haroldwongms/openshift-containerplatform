@@ -60,4 +60,25 @@ echo $(date) " - Installing OpenShift utilities"
 
 yum -y install atomic-openshift-utils
 
+# Create playbook to update ansible.cfg file
+
+cat > updateansiblecfg.yaml <<EOF
+#!/usr/bin/ansible-playbook
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - lineinfile:
+      dest: /etc/ansible/ansible.cfg
+      regexp: '^library '
+      insertafter: '#library        = /usr/share/my_modules/'
+      line: 'library = /usr/share/ansible/openshift-ansible/library/'
+EOF
+
+# Run Ansible Playbook to update ansible.cfg file
+
+echo $(date) " - Updating ansible.cfg file"
+
+ansible-playbook ./updateansiblecfg.yaml
+
 echo $(date) " - Script Complete"
