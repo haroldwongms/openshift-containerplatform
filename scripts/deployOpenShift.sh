@@ -55,6 +55,7 @@ echo $(date) " - Create Ansible Playbook for Post Installation task"
 cat > /home/${SUDOUSER}/postinstall1.yml <<EOF
 ---
 - hosts: masters
+  gather_facts: no
   remote_user: ${SUDOUSER}
   become: yes
   become_method: sudo
@@ -72,6 +73,7 @@ EOF
 cat > /home/${SUDOUSER}/postinstall2.yml <<EOF
 ---
 - hosts: nfs
+  gather_facts: no
   remote_user: ${SUDOUSER}
   become: yes
   become_method: sudo
@@ -87,6 +89,7 @@ EOF
 cat > /home/${SUDOUSER}/postinstall3.yml <<EOF
 ---
 - hosts: nodes
+  gather_facts: no
   remote_user: ${SUDOUSER}
   become: yes
   become_method: sudo
@@ -102,6 +105,7 @@ EOF
 cat > /home/${SUDOUSER}/postinstall4.yml <<EOF
 ---
 - hosts: nfs
+  gather_facts: no
   remote_user: ${SUDOUSER}
   become: yes
   become_method: sudo
@@ -377,6 +381,7 @@ EOF
 cat > /home/${SUDOUSER}/postinstall5.yml <<EOF
 ---
 - hosts: nfs
+  gather_facts: no
   remote_user: ${SUDOUSER}
   become: yes
   become_method: sudo
@@ -660,6 +665,8 @@ fi
 
 # Delete stuck nodes
 echo $(date) "- Delete stuck nodes"
+
+sleep 30
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall5.yml"
 
