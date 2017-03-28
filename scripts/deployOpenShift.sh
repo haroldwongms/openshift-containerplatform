@@ -389,20 +389,22 @@ cat > /home/${SUDOUSER}/postinstall5.yml <<EOF
     description: "Delete stuck nodes"
   tasks:
   - name: Delete stuck nodes
+    command: "{{item}}"
+    with_items:
 EOF
 
 # Loop to add Infra Nodes
 
 for (( c=0; c<$INFRACOUNT; c++ ))
 do
-  echo "    shell: oc delete node $INFRA-$c" >> /home/${SUDOUSER}/postinstall5
+  echo "    - oc delete node $INFRA-$c" >> /home/${SUDOUSER}/postinstall5.yml
 done
 
 # Loop to add Nodes
 
 for (( c=0; c<$NODECOUNT; c++ ))
 do
-  echo "    shell: oc delete node $NODE-$c" >> /home/${SUDOUSER}/postinstall5
+  echo "    - oc delete node $NODE-$c" >> /home/${SUDOUSER}/postinstall5.yml
 done
 
 # Create Ansible Hosts File
