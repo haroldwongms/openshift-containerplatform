@@ -307,6 +307,8 @@
 		"masterSubnetName": "mastersubnet",
 		"nodeSubnetName": "nodesubnet",
 		"bastionPublicIp": "bastionpublicip",
+		"persistentVolume1Type": "Standard_LRS",
+		"persistentVolume2Type": "Standard_LRS",
 		
 		"masterLoadBalancerName": "[concat(variables('openshiftMasterHostname'), 'lb')]",
 		"masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('openshiftMasterPublicIpDnsLabel'))]",
