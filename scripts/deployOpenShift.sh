@@ -372,6 +372,34 @@ cat > /home/${SUDOUSER}/setup-azure-config-multiple-master.yml <<EOF
     - restart atomic-openshift-node
 EOF
 
+# Run on MASTER-0 node - Delete non-master Nodes to reset after Azure config
+
+cat > /home/${SUDOUSER}/postinstall5.yml <<EOF
+---
+- hosts: nfs
+  remote_user: ${SUDOUSER}
+  become: yes
+  become_method: sudo
+  vars:
+    description: "Delete stuck nodes"
+  tasks:
+  - name: Delete stuck nodes
+EOF
+
+# Loop to add Infra Nodes
+
+for (( c=0; c<$INFRACOUNT; c++ ))
+do
+  echo "    shell: oc delete node $INFRA-$c" >> /home/${SUDOUSER}/postinstall5
+done
+
+# Loop to add Nodes
+
+for (( c=0; c<$NODECOUNT; c++ ))
+do
+  echo "    shell: oc delete node $NODE-$c" >> /home/${SUDOUSER}/postinstall5
+done
+
 # Create Ansible Hosts File
 echo $(date) " - Create Ansible Hosts file"
 
@@ -629,6 +657,11 @@ then
 else
    runuser -l $SUDOUSER -c "ansible-playbook ~/setup-azure-config-multiple-master.yml"
 fi
+
+# Delete stuck nodes
+echo $(date) "- Delete stuck nodes"
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall5.yml"
 
 # Delete postinstall.yml file
 echo $(date) "- Deleting unecessary file"
