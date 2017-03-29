@@ -298,6 +298,8 @@
 		"newStorageAccountNodeOs": "[concat('nodeos', uniqueString(concat(resourceGroup().id, 'nodeossa')))]",
 		"newStorageAccountNodeData": "[concat('nodedata', uniqueString(concat(resourceGroup().id, 'nodedatasa')))]",
 		"newStorageAccountRegistry": "[concat('registry', uniqueString(concat(resourceGroup().id, 'registry')))]",
+		"newStorageAccountPersistentVolume1": "[concat('pv1sa', uniqueString(concat(resourceGroup().id, 'persistentvolume1')))]", 
+		"newStorageAccountPersistentVolume2": "[concat('pv2sa', uniqueString(concat(resourceGroup().id, 'persistentvolume2')))]", 
 		"addressPrefix": "10.0.0.0/8",
 		"masterSubnetPrefix": "10.1.0.0/16",
 		"nodeSubnetPrefix": "10.2.0.0/16",
@@ -305,6 +307,8 @@
 		"masterSubnetName": "mastersubnet",
 		"nodeSubnetName": "nodesubnet",
 		"bastionPublicIp": "bastionpublicip",
+		"persistentVolume1Type": "Standard_LRS",
+		"persistentVolume2Type": "Standard_LRS",
 		
 		"masterLoadBalancerName": "[concat(variables('openshiftMasterHostname'), 'lb')]",
 		"masterPublicIpAddressId": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('openshiftMasterPublicIpDnsLabel'))]",
@@ -791,6 +795,28 @@
 				"accountType": "Standard_LRS"
 			}
 		}, {
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[variables('newStorageAccountPersistentVolume1')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionStorage')]",
+			"tags": {
+				"displayName": "PersistentVolume1StorageAccount"
+			},
+			"properties": {
+				"accountType": "[variables('persistentVolume1Type')]"
+			}
+		}, {
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[variables('newStorageAccountPersistentVolume2')]",
+			"location": "[variables('location')]",
+			"apiVersion": "[variables('apiVersionStorage')]",
+			"tags": {
+				"displayName": "PersistentVolume2StorageAccount"
+			},
+			"properties": {
+				"accountType": "[variables('persistentVolume2Type')]"
+			}
+		}, {
 			"type": "Microsoft.Network/publicIPAddresses",
 			"name": "[variables('bastionPublicIp')]",
 			"location": "[variables('location')]",
@@ -1216,7 +1242,7 @@
 						"value": "[variables('customImageName')]"
 					},
 					"newStorageAccount": {
-						"value": "[variables('newStorageAccountMaster')]"
+						"value": "[variables('newStorageAccountInfra')]"
 					},
 					"customStorageAccount": {
 						"value": "[parameters('customStorageAccount')]"
