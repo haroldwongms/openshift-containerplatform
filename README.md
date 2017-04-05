@@ -198,6 +198,9 @@ Ex: `azure group deployment create --name ocpdeployment --template-file azuredep
 
 The OpenShift Ansible playbook does take a while to run when using VMs backed by Standard Storage. VMs backed by Premium Storage are faster. If you want Premium Storage, select a DS or GS series VM.
 <hr />
+
+**It is VERY important that you reboot all the nodes upon a successfull cluster deployment before you login and start using the OpenShift Cluster!**
+
 Be sure to follow the OpenShift instructions to create the necessary DNS entry for the OpenShift Router for access to applications. <br />
 
 Currently there is a hiccup in the deployment of metrics and logging that will cause the deployment to take a little longer than normal.  When you look at the stdout files on the Bastion host, you will see that the installation had numerous retries for certain playbook tasks.  This is normal.
