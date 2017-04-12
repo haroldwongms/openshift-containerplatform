@@ -47,13 +47,16 @@ subscription-manager repos --disable="*"
 subscription-manager repos \
     --enable="rhel-7-server-rpms" \
     --enable="rhel-7-server-extras-rpms" \
-    --enable="rhel-7-server-ose-3.5-rpms"
+    --enable="rhel-7-server-ose-3.5-rpms" \
+	--enable="rhel-7-fast-datapath-rpms"
 
 # Install base packages and update system to latest packages
 echo $(date) " - Install base packages and update system to latest packages"
 
 yum -y install wget git net-tools bind-utils iptables-services bridge-utils bash-completion httpd-tools
 yum -y update --exclude=WALinuxAgent
+yum install atomic-openshift-excluder atomic-openshift-docker-excluder
+atomic-openshift-excluder unexclude
 
 # Install OpenShift utilities
 echo $(date) " - Installing OpenShift utilities"
