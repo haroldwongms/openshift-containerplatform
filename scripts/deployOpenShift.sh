@@ -666,11 +666,11 @@ else
 fi
 
 # Delete stuck nodes
-echo $(date) "- Delete stuck nodes"
+#echo $(date) "- Delete stuck nodes"
 
-sleep 30
+#sleep 30
 
-runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall5.yml"
+#runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall5.yml"
 
 # Delete postinstall.yml file
 echo $(date) "- Deleting unecessary file"
