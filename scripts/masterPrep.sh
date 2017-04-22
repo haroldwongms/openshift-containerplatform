@@ -7,6 +7,7 @@ PASSWORD_ACT_KEY="$3"
 POOL_ID=$4
 STORAGEACCOUNT1=$5
 STORAGEACCOUNT2=$6
+SUDOUSER=$7
 
 # Register Host with Cloud Access Subscription
 echo $(date) " - Register host with Cloud Access Subscription"
@@ -74,10 +75,10 @@ echo $(date) " - Installing OpenShift utilities"
 
 yum -y install atomic-openshift-utils
 
-# Install Docker 1.12.5
-echo $(date) " - Installing Docker 1.12.5"
+# Install Docker 1.12.x
+echo $(date) " - Installing Docker 1.12.x"
 
-yum -y install docker-1.12.5
+yum -y install docker
 sed -i -e "s#^OPTIONS='--selinux-enabled'#OPTIONS='--selinux-enabled --insecure-registry 172.30.0.0/16'#" /etc/sysconfig/docker
 
 # Create thin pool logical volume for Docker
@@ -151,9 +152,7 @@ cat <<EOF > /home/${SUDOUSER}/scgeneric2.yml
 kind: StorageClass
 apiVersion: storage.k8s.io/v1beta1
 metadata:
-  name: generic
-  annotations:
-    storageclass.beta.kubernetes.io/is-default-class: "true"
+  name: slow
 provisioner: kubernetes.io/azure-disk
 parameters:
   storageAccount: ${STORAGEACCOUNT2}
