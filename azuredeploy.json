@@ -1493,7 +1493,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('bash ', variables('masterPrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'), ' ', variables('newStorageAccountPersistentVolume1'), ' ', variables('newStorageAccountPersistentVolume2'))]"
+					"commandToExecute": "[concat('bash ', variables('masterPrepScriptFileName'), ' ', parameters('rhsmUsernamePasswordOrActivationKey'), ' ', parameters('rhsmUsernameOrOrgId'), ' ', variables('singlequote'), parameters('rhsmPasswordOrActivationKey'), variables('singlequote'), ' ', parameters('rhsmPoolId'), ' ', variables('newStorageAccountPersistentVolume1'), ' ', variables('newStorageAccountPersistentVolume2'), ' ', parameters('adminUsername'))]"
 				}
 			}
 		}, {
@@ -1581,6 +1581,18 @@
 					},
 					"newStorageAccountKey": {
 						"value": "[listKeys(variables('newStorageAccountRegistry'),'2015-06-15').key1]"
+					},
+					"newStorageAccountPersistentVolume1": {
+						"value": "[variables('newStorageAccountPersistentVolume1')]"
+					},
+					"newStorageAccountPV1Key": {
+						"value": "[listKeys(variables('newStorageAccountPersistentVolume1'),'2015-06-15').key1]"
+					},
+					"newStorageAccountPersistentVolume2": {
+						"value": "[variables('newStorageAccountPersistentVolume2')]"
+					},
+					"newStorageAccountPV2Key": {
+						"value": "[listKeys(variables('newStorageAccountPersistentVolume2'),'2015-06-15').key1]"
 					},
 					"openshiftBastionHostname": {
 						"value": "[variables('openshiftBastionHostname')]"
