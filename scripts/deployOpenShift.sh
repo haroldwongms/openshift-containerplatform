@@ -376,6 +376,20 @@ cat > /home/${SUDOUSER}/setup-azure-config-multiple-master.yml <<EOF
     - restart atomic-openshift-node
 EOF
 
+# Create Storage Class Definition for PV use
+
+cat <<EOF > /home/${SUDOUSER}/scgeneric.yml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1beta1
+metadata:
+  name: generic
+  annotations:
+    storageclass.beta.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/azure-disk
+parameters:
+  storageAccount: ${$RESOURCEGROUP}
+EOF
+
 # Run on MASTER-0 node - Delete non-master Nodes to reset after Azure config
 
 cat > /home/${SUDOUSER}/postinstall5.yml <<EOF
