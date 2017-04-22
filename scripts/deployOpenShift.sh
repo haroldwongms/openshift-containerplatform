@@ -63,7 +63,7 @@ echo $(date) " - Create Ansible Playbook for Post Installation task"
 
 # Run on all masters - Create Inital OpenShift User on all Masters
 
-cat > /home/${SUDOUSER}/postinstall1.yml <<EOF
+cat > /home/${SUDOUSER}/addocpuser.yml <<EOF
 ---
 - hosts: masters
   gather_facts: no
@@ -81,7 +81,7 @@ EOF
 
 # Run on only MASTER-0 - Make initial OpenShift User a Cluster Admin
 
-cat > /home/${SUDOUSER}/postinstall2.yml <<EOF
+cat > /home/${SUDOUSER}/assignclusteradminrights.yml <<EOF
 ---
 - hosts: nfs
   gather_facts: no
@@ -97,7 +97,7 @@ EOF
 
 # Run on all nodes - Set Root password on all nodes
 
-cat > /home/${SUDOUSER}/postinstall3.yml <<EOF
+cat > /home/${SUDOUSER}/assignrootpassword.yml <<EOF
 ---
 - hosts: nodes
   gather_facts: no
@@ -113,7 +113,7 @@ EOF
 
 # Run on MASTER-0 node - configure registry to use Azure Storage
 
-cat > /home/${SUDOUSER}/postinstall4.yml <<EOF
+cat > /home/${SUDOUSER}/dockerregistry.yml <<EOF
 ---
 - hosts: nfs
   gather_facts: no
@@ -129,7 +129,7 @@ EOF
 
 # Run on MASTER-0 node - configure Storage Class
 
-cat > /home/${SUDOUSER}/postinstall6.yml <<EOF
+cat > /home/${SUDOUSER}/configurestorageclass.yml <<EOF
 ---
 - hosts: nfs
   gather_facts: no
@@ -143,6 +143,23 @@ cat > /home/${SUDOUSER}/postinstall6.yml <<EOF
     shell: oc create -f /home/${SUDOUSER}/scgeneric1.yml
   - name: Create Storage Class with StorageAccountPV2
     shell: oc create -f /home/${SUDOUSER}/scgeneric2.yml
+EOF
+
+# Reboot all nodes as last step to fix stuck nodes issue
+
+cat > /home/${SUDOUSER}/rebootnodes.yml <<EOF
+- hosts: nodes
+  gather_facts: no
+  remote_user: hwadmin
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: Reboot the server for kernel update
+    shell: ( sleep 3 && /sbin/reboot & )
+    async: 0
+    poll: 0 
+  - name: Wait for the server to reboot
+    local_action: wait_for host="{{ansible_host}}" delay=15 state=started port=22 connect_timeout=10 timeout=180
 EOF
 
 # Create vars.yml file for use by setup-azure-config.yml playbook
@@ -407,7 +424,7 @@ EOF
 
 # Run on MASTER-0 node - Delete non-master Nodes to reset after Azure config
 
-cat > /home/${SUDOUSER}/postinstall5.yml <<EOF
+cat > /home/${SUDOUSER}/deletestucknodes.yml <<EOF
 ---
 - hosts: nfs
   gather_facts: no
@@ -426,14 +443,14 @@ EOF
 
 for (( c=0; c<$INFRACOUNT; c++ ))
 do
-  echo "    - oc delete node $INFRA-$c" >> /home/${SUDOUSER}/postinstall5.yml
+  echo "    - oc delete node $INFRA-$c" >> /home/${SUDOUSER}/deletestucknodes.yml
 done
 
 # Loop to add Nodes
 
 for (( c=0; c<$NODECOUNT; c++ ))
 do
-  echo "    - oc delete node $NODE-$c" >> /home/${SUDOUSER}/postinstall5.yml
+  echo "    - oc delete node $NODE-$c" >> /home/${SUDOUSER}/deletestucknodes.yml
 done
 
 # Create Ansible Hosts File
@@ -665,22 +682,22 @@ sed -i -e "s/# Defaults    requiretty/Defaults    requiretty/" /etc/sudoers
 # Adding user to OpenShift authentication file
 echo $(date) "- Adding OpenShift user"
 
-runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall1.yml"
+runuser -l $SUDOUSER -c "ansible-playbook ~/addocpuser.yml"
 
 # Assigning cluster admin rights to OpenShift user
 echo $(date) "- Assigning cluster admin rights to user"
 
-runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall2.yml"
+runuser -l $SUDOUSER -c "ansible-playbook ~/assignclusteradminrights.yml"
 
 # Setting password for Cockpit
 echo $(date) "- Assigning password for root, which is used to login to Cockpit"
 
-runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall3.yml"
+runuser -l $SUDOUSER -c "ansible-playbook ~/assignrootpassword.yml"
 
 # Configure Docker Registry to use Azure Storage Account
 echo $(date) "- Configuring Docker Registry to use Azure Storage Account"
 
-runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall4.yml"
+runuser -l $SUDOUSER -c "ansible-playbook ~/dockerregistry.yml"
 
 echo $(date) "- Sleep for 120"
 
@@ -701,21 +718,28 @@ echo $(date) "- Delete stuck nodes"
 
 sleep 30
 
-runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall5.yml"
+runuser -l $SUDOUSER -c "ansible-playbook ~/deletestucknodes.yml"
 
 # Create Storage Classes
 echo $(date) "- Creating Storage Classes"
 
 sleep 30
 
-runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall6.yml"
+runuser -l $SUDOUSER -c "ansible-playbook ~/configurestorageclass.yml"
+
+# Reboot all nodes
+echo $(date) "- Rebooting all nodes"
+
+sleep 10
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/rebootnodes.yml"
 
 # Delete postinstall.yml file
 echo $(date) "- Deleting unecessary files"
 
-rm /home/${SUDOUSER}/postinstall1.yml
-rm /home/${SUDOUSER}/postinstall2.yml
-rm /home/${SUDOUSER}/postinstall3.yml
-rm /home/${SUDOUSER}/postinstall4.yml
+rm /home/${SUDOUSER}/addocpuser.yml
+rm /home/${SUDOUSER}/assignclusteradminrights.yml
+rm /home/${SUDOUSER}/assignrootpassword.yml
+rm /home/${SUDOUSER}/dockerregistry.yml
 
 echo $(date) " - Script complete"
