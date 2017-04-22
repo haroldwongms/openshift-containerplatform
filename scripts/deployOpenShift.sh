@@ -116,6 +116,24 @@ cat > /home/${SUDOUSER}/postinstall4.yml <<EOF
     shell: oc env dc docker-registry -e REGISTRY_STORAGE=azure -e REGISTRY_STORAGE_AZURE_ACCOUNTNAME=$REGISTRYSA -e REGISTRY_STORAGE_AZURE_ACCOUNTKEY=$ACCOUNTKEY -e REGISTRY_STORAGE_AZURE_CONTAINER=registry
 EOF
 
+# Run on MASTER-0 node - configure Storage Class
+
+cat > /home/${SUDOUSER}/postinstall6.yml <<EOF
+---
+- hosts: nfs
+  gather_facts: no
+  remote_user: ${SUDOUSER}
+  become: yes
+  become_method: sudo
+  vars:
+    description: "Create Storage Class"
+  tasks:
+  - name: Create Storage Class with StorageAccountPV1
+    shell: oc create -f /home/${SUDOUSER}/scgeneric1.yml
+  - name: Create Storage Class with StorageAccountPV2
+    shell: oc create -f /home/${SUDOUSER}/scgeneric2.yml
+EOF
+
 # Create vars.yml file for use by setup-azure-config.yml playbook
 
 cat > /home/${SUDOUSER}/vars.yml <<EOF
@@ -374,20 +392,6 @@ cat > /home/${SUDOUSER}/setup-azure-config-multiple-master.yml <<EOF
       - azure
     notify:
     - restart atomic-openshift-node
-EOF
-
-# Create Storage Class Definition for PV use
-
-cat <<EOF > /home/${SUDOUSER}/scgeneric.yml
-kind: StorageClass
-apiVersion: storage.k8s.io/v1beta1
-metadata:
-  name: generic
-  annotations:
-    storageclass.beta.kubernetes.io/is-default-class: "true"
-provisioner: kubernetes.io/azure-disk
-parameters:
-  storageAccount: ${$RESOURCEGROUP}
 EOF
 
 # Run on MASTER-0 node - Delete non-master Nodes to reset after Azure config
@@ -679,6 +683,11 @@ else
    runuser -l $SUDOUSER -c "ansible-playbook ~/setup-azure-config-multiple-master.yml"
 fi
 
+# Create Storage Classes
+echo $(date) "- Creating Storage Classes"
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall6.yml"
+
 # Delete stuck nodes
 #echo $(date) "- Delete stuck nodes"
 
@@ -687,7 +696,7 @@ fi
 #runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall5.yml"
 
 # Delete postinstall.yml file
-echo $(date) "- Deleting unecessary file"
+echo $(date) "- Deleting unecessary files"
 
 rm /home/${SUDOUSER}/postinstall1.yml
 rm /home/${SUDOUSER}/postinstall2.yml

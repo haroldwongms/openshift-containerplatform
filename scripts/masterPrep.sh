@@ -5,6 +5,8 @@ SELECT=$1
 USERNAME_ORG=$2
 PASSWORD_ACT_KEY="$3"
 POOL_ID=$4
+STORAGEACCOUNT1=$5
+STORAGEACCOUNT2=$6
 
 # Register Host with Cloud Access Subscription
 echo $(date) " - Register host with Cloud Access Subscription"
@@ -128,6 +130,34 @@ then
    chmod a+rwx /exports -R  
 fi
 
-mkdir /etc/azure
+# Create Storage Class yml files on MASTER-0
+
+if hostname -f|grep -- "-0" >/dev/null
+then
+cat <<EOF > /home/${SUDOUSER}/scgeneric1.yml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1beta1
+metadata:
+  name: generic
+  annotations:
+    storageclass.beta.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/azure-disk
+parameters:
+  storageAccount: ${STORAGEACCOUNT1}
+EOF
+
+cat <<EOF > /home/${SUDOUSER}/scgeneric2.yml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1beta1
+metadata:
+  name: generic
+  annotations:
+    storageclass.beta.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/azure-disk
+parameters:
+  storageAccount: ${STORAGEACCOUNT2}
+EOF
+fi
+
 
 echo $(date) " - Script Complete"
