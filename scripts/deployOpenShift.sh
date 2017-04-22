@@ -26,12 +26,22 @@ AADCLIENTID=${19}
 AADCLIENTSECRET="${20}"
 RESOURCEGROUP=${21}
 LOCATION=${22}
+STORAGEACCOUNT1=${23}
+STORAGEACCOUNT2=${24}
+SAKEY1=${25}
+SAKEY2=${26}
 
 MASTERLOOP=$((MASTERCOUNT - 1))
 INFRALOOP=$((INFRACOUNT - 1))
 NODELOOP=$((NODECOUNT - 1))
 
-#DOMAIN=$( awk 'NR==2' /etc/resolv.conf | awk '{ print $2 }' )
+# Create Container in PV Storage Accounts
+echo $(date) " - Creating container in PV Storage Accounts"
+
+azure login --service-principal -u $AADCLIENTID -p $AADCLIENTSECRET --tenant $TENANTID
+
+azure storage container create -a $STORAGEACCOUNT1 -k $SAKEY1 --container pvs
+azure storage container create -a $STORAGEACCOUNT2 -k $SAKEY2 --container pvs
 
 # Generate private keys for use by Ansible
 echo $(date) " - Generating Private keys for use by Ansible for OpenShift Installation"
