@@ -695,7 +695,7 @@ else
    runuser -l $SUDOUSER -c "ansible-playbook ~/setup-azure-config-multiple-master.yml"
 fi
 
-Delete stuck nodes
+# Delete stuck nodes
 echo $(date) "- Delete stuck nodes"
 
 sleep 30
