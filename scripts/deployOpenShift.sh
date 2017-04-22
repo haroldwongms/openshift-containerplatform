@@ -445,13 +445,14 @@ ansible_ssh_user=$SUDOUSER
 ansible_become=yes
 openshift_install_examples=true
 deployment_type=openshift-enterprise
+openshift_release=v3.5
 docker_udev_workaround=True
 openshift_use_dnsmasq=false
 openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
-#console_port=8443
+console_port=443
 openshift_cloudprovider_kind=azure
 osm_default_node_selector='type=app'
 
@@ -539,13 +540,14 @@ ansible_ssh_user=$SUDOUSER
 ansible_become=yes
 openshift_install_examples=true
 deployment_type=openshift-enterprise
+openshift_release=v3.5
 docker_udev_workaround=True
 openshift_use_dnsmasq=false
 openshift_master_default_subdomain=$ROUTING
 openshift_override_hostname_check=true
 osm_use_cockpit=true
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
-#console_port=8443
+console_port=443
 openshift_cloudprovider_kind=azure
 osm_default_node_selector='type=app'
 
