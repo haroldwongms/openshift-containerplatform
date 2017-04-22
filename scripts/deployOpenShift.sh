@@ -695,17 +695,19 @@ else
    runuser -l $SUDOUSER -c "ansible-playbook ~/setup-azure-config-multiple-master.yml"
 fi
 
+Delete stuck nodes
+echo $(date) "- Delete stuck nodes"
+
+sleep 30
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall5.yml"
+
 # Create Storage Classes
 echo $(date) "- Creating Storage Classes"
 
+sleep 30
+
 runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall6.yml"
-
-# Delete stuck nodes
-#echo $(date) "- Delete stuck nodes"
-
-#sleep 30
-
-#runuser -l $SUDOUSER -c "ansible-playbook ~/postinstall5.yml"
 
 # Delete postinstall.yml file
 echo $(date) "- Deleting unecessary files"
