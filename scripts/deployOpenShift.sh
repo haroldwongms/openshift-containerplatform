@@ -38,10 +38,11 @@ NODELOOP=$((NODECOUNT - 1))
 # Create Container in PV Storage Accounts
 echo $(date) " - Creating container in PV Storage Accounts"
 
+azure telemetry --disable
 azure login --service-principal -u $AADCLIENTID -p $AADCLIENTSECRET --tenant $TENANTID
 
-azure storage container create -a $STORAGEACCOUNT1 -k $SAKEY1 --container pvs
-azure storage container create -a $STORAGEACCOUNT2 -k $SAKEY2 --container pvs
+azure storage container create -a $STORAGEACCOUNT1 -k $SAKEY1 --container vhds
+azure storage container create -a $STORAGEACCOUNT2 -k $SAKEY2 --container vhds
 
 # Generate private keys for use by Ansible
 echo $(date) " - Generating Private keys for use by Ansible for OpenShift Installation"
