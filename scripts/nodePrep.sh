@@ -67,10 +67,10 @@ yum -y update --exclude=WALinuxAgent
 yum install atomic-openshift-excluder atomic-openshift-docker-excluder
 atomic-openshift-excluder unexclude
 
-# Install Docker 1.12.5
-echo $(date) " - Installing Docker 1.12.5"
+# Install Docker 1.12.x
+echo $(date) " - Installing Docker 1.12.x"
 
-yum -y install docker-1.12.5
+yum -y install docker
 sed -i -e "s#^OPTIONS='--selinux-enabled'#OPTIONS='--selinux-enabled --insecure-registry 172.30.0.0/16'#" /etc/sysconfig/docker
 
 # Create thin pool logical volume for Docker
