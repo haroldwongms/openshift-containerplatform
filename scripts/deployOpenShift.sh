@@ -154,12 +154,12 @@ cat > /home/${SUDOUSER}/rebootnodes.yml <<EOF
   become: yes
   become_method: sudo
   tasks:
-  - name: Reboot the server for kernel update
-    shell: ( sleep 3 && /sbin/reboot & )
+  - name: Reboot the server to finalize stuck node fix
+    shell: ( sleep 3 && reboot & )
     async: 0
     poll: 0 
   - name: Wait for the server to reboot
-    local_action: wait_for host="{{ansible_host}}" delay=15 state=started port=22 connect_timeout=10 timeout=180
+    local_action: wait_for host="{{ansible_host}}" delay=25 state=started port=22 connect_timeout=10 timeout=180
 EOF
 
 # Create vars.yml file for use by setup-azure-config.yml playbook
@@ -694,6 +694,11 @@ echo $(date) "- Assigning password for root, which is used to login to Cockpit"
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/assignrootpassword.yml"
 
+# Create Storage Classes
+echo $(date) "- Creating Storage Classes"
+
+runuser -l $SUDOUSER -c "ansible-playbook ~/configurestorageclass.yml"
+
 # Configure Docker Registry to use Azure Storage Account
 echo $(date) "- Configuring Docker Registry to use Azure Storage Account"
 
@@ -715,22 +720,15 @@ fi
 
 # Delete stuck nodes
 echo $(date) "- Delete stuck nodes"
-
+echo $(date) "- Sleep for 30"
 sleep 30
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/deletestucknodes.yml"
 
-# Create Storage Classes
-echo $(date) "- Creating Storage Classes"
-
-sleep 30
-
-runuser -l $SUDOUSER -c "ansible-playbook ~/configurestorageclass.yml"
-
 # Reboot all nodes
 echo $(date) "- Rebooting all nodes"
-
-sleep 10
+echo $(date) "- Sleep for 20"
+sleep 20
 
 runuser -l $SUDOUSER -c "ansible-playbook ~/rebootnodes.yml"
 
