@@ -191,7 +191,7 @@ Ex: `azure group deployment create --name ocpdeployment --template-file azuredep
 1. Create Resource Group: az group create -n \<name\> -l \<location\><br />
 Ex: `az group create -n openshift-cluster -l westus`
 2. Create Resource Group Deployment: az group deployment create --name \<deployment name\> --template-file \<template_file\> --parameters @\<parameters_file\> --resource-group \<resource group name\> --nowait<br />
-Ex: `azure group deployment create --name ocpdeployment --template-file azuredeploy.json --parameters @azuredeploy.parameters.json --resource-group openshift-cluster --nowait`
+Ex: `azure group deployment create --name ocpdeployment --template-file azuredeploy.json --parameters @azuredeploy.parameters.json --resource-group openshift-cluster --no-wait`
 
 
 ### NOTE
