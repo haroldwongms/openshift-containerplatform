@@ -80,10 +80,10 @@
 		"keyVaultSecret": {
 			"value": "changeme"
 		},
-		"27.aadClientId": {
+		"aadClientId": {
 			"value": "changeme"
 		},
-		"28.aadClientSecret": {
+		"aadClientSecret": {
 			"value": "changeme"
 		},
 		"defaultSubDomainType": {
