@@ -1,3 +1,32 @@
+# OpenShift Container Platform 
+
+This repo is no longer active as I have taken the work and moved it to an official Microsoft GitHub location.
+
+Please bookmark: https://aka.ms/openshift for future reference as this landing page has links for both OpenShift Origin and OpenShift Container Platform.
+
+
+## NOTE
+
+I will leave the instructions intact on this README.md file for now in case you are still utilizing one of the branches on this repo. However, know that I will no longer be making any additional updates to the templates here.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # OpenShift Container Platform 3.4 with Username / Password authentication for OpenShift
 
 This template deploys OpenShift Container Platform with basic username / password for authentication to OpenShift. It includes the following resources:
