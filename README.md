@@ -9,9 +9,28 @@ Please bookmark: https://aka.ms/openshift for future reference as this landing p
 
 I will leave the instructions intact on this README.md file for now in case you are still utilizing one of the branches on this repo. However, know that I will no longer be making any additional updates to the templates here.
 
-
-
-
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
 
 
 
